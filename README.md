@@ -1,3 +1,11 @@
+# Clarification
+
+Below is the official readme file from the repository this framework originated.
+I am not claiming to have made or been part of the process of making anything that
+was pulled from the repository. The work belongs to its original creators to the extent
+specified by the license it was published under. This repository is for
+my student project.
+
 # About
 
 This framework was created to support the teaching of the subject Development of intranet and intranet applications 

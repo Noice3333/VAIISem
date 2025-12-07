@@ -2,6 +2,7 @@
 
 namespace App;
 
+use App\Auth\GraffitiAuth;
 use Framework\Auth\DummyAuthenticator;
 use Framework\Core\ErrorHandler;
 use Framework\DB\DefaultConventions;
@@ -19,7 +20,7 @@ class Configuration
     /**
      * Application name.
      */
-    public const APP_NAME = 'Vaííčko MVC FW';
+    public const APP_NAME = 'Graffiti';
 
     /**
      * Version of the framework.
@@ -43,7 +44,7 @@ class Configuration
      * Prefix for the default view files located in the App/Views directory. The view file format is
      * <ROOT_LAYOUT>.layout.view.php.
      */
-    public const ROOT_LAYOUT = 'root';
+    public const ROOT_LAYOUT = 'graffiti';
 
     /**
      * Flag to determine whether to display all SQL queries after the application output for debugging purposes.
@@ -66,7 +67,7 @@ class Configuration
      * Class name for the authenticator. This class must implement the IAuthenticator interface. Comment out this line
      * if authentication is not required in the application.
      */
-    public const AUTH_CLASS = DummyAuthenticator::class;
+    public const AUTH_CLASS = GraffitiAuth::class;
 
     /**
      * Class name for the error handler. This class must implement the IHandleError interface.

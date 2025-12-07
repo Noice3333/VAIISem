@@ -70,4 +70,19 @@ class AuthController extends BaseController
         $this->app->getAuth()->logout();
         return $this->html();
     }
+
+    public function register(Request $request): Response
+    {
+        $registered = null;
+        if ($request->hasValue('submit')) {
+            $registered = $this->app->getAuth()->register($request->value('login'),
+                $request->value('password'), $request->value('repeat_password'));
+            if ($registered) {
+                return $this->redirect($this->url("user.index"));
+            }
+        }
+
+        $message = $registered === false ? 'Nepodarilo sa zaregistrovať!' : null;
+        return $this->html(compact("message"));
+    }
 }

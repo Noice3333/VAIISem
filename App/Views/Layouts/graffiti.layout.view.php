@@ -24,8 +24,32 @@
     <script src="<?= $link->asset('js/script.js') ?>"></script>
 </head>
 <body>
-<div class="navbar bg-light navbar-expand" style="justify-content: end">
-    <a style="margin: 10px; margin-right: 20px" href="<?= $link->url('home.index') ?>">Return</a>
+<div class="navbar bg-light navbar-expand-lg">
+    <div class="container-fluid">
+        <a class="nav-link" href="<?= $link->url('home.index') ?>">
+            <img class="smallIcon" src="<?= $link->asset('images/graffiti.jpg') ?>"
+                 title="<?= App\Configuration::APP_NAME ?>" alt="Return">
+        </a>
+        <ul class="navbar-nav me-auto">
+            <li class="nav-item">
+                <a class="nav-link" href="<?= $link->url('home.post') ?>">Posts</a>
+            </li>
+        </ul>
+        <?php if ($auth?->isLogged()) { ?>
+            <span class="navbar-text">Logged in user: <b><?= $auth?->user?->name ?></b></span>
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="<?= $link->url('auth.logout') ?>">Log out</a>
+                </li>
+            </ul>
+        <?php } else { ?>
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="<?= App\Configuration::LOGIN_URL ?>">Log in</a>
+                </li>
+            </ul>
+        <?php } ?>
+    </div>
 </div>
 <div class="container-fluid mt-3">
     <div class="web-content">
@@ -34,3 +58,4 @@
 </div>
 </body>
 </html>
+

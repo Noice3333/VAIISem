@@ -1,7 +1,18 @@
 .navbar {
-    border-bottom: 1px solid grey;
+    border-bottom: 1px solid blue;
 }
 
-.navbar-brand img {
-    width: 50px;
+
+.smallIcon {
+    max-height: 100px;
+}
+
+.customButton {
+    min-width: 35%;
+    min-height: 40px;
+    margin-left: 30%;
+}
+
+.formRow {
+    padding: 5px;
 }

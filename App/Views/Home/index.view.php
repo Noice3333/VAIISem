@@ -3,7 +3,7 @@
 /** @var \Framework\Support\LinkGenerator $link */
 ?>
 
-<div class="container-fluid">
+<!--div class="container-fluid">
     <div class="row">
         <div class="col mt-5">
             <div class="text-center">
@@ -35,5 +35,10 @@
                 Department of Software Technologies
             </div>
         </div>
+    </div>
+</div-->
+<div class="containter-fluid">
+    <div class="text-center">
+        Lorem lorem
     </div>
 </div>
