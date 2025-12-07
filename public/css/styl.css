@@ -1,16 +1,15 @@
 .navbar {
     border-bottom: 2px solid blue;
+    background-color: cornflowerblue;
 }
-
 
 .smallIcon {
     max-height: 100px;
 }
 
 .customButton {
-    min-width: 35%;
+    min-width: 40%;
     min-height: 40px;
-    margin-left: 30%;
 }
 
 .formRow {
@@ -26,12 +25,29 @@
     border-right: blue medium solid;
 }
 
-.navbarG {
-    background-color: cornflowerblue;
-}
 
 .navbarText {
     font-weight: bold;
     font-size: 20px;
     color: white;
+}
+
+.loginBox {
+    background-color: #87ceeb;
+    max-width: 40%;
+    margin: auto;
+    border: black medium solid;
+}
+
+.homeScreenContainer {
+    min-height: max-content;
+}
+
+.authLayoutNavbar {
+    justify-content: end;
+    min-height: 118px;
+}
+
+.authNavbarButton {
+    margin: 10px 20px 10px 10px;
 }

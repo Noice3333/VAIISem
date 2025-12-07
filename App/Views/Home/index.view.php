@@ -3,7 +3,7 @@
 /** @var \Framework\Support\LinkGenerator $link */
 ?>
 
-<div class="row" style="min-height: max-content;">
+<div class="row homeScreenContainer">
     <div class="col-4 borderSep">
     </div>
     <div class="col-8 p-1">

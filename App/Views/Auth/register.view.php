@@ -7,7 +7,7 @@
 $view->setLayout('auth');
 ?>
 
-<div class="container" style="background-color: aqua; max-width: 60%; margin: auto;">
+<div class="container loginBox">
     <div class="row justify-content-center">
         <div class="text-center text-danger mb-3">
             <?= @$dataVars['message'] ?>
@@ -48,8 +48,8 @@ $view->setLayout('auth');
                 </div>
             </div>
             <div class="row formRow">
-                <div class="col" >
-                    <button class="btn btn-danger customButton" type="submit" name="submit">
+                <div class="col d-flex justify-content-center align-items-center" >
+                    <button class="btn btn-danger customButton mb-3" type="submit" name="submit">
                         Register
                     </button>
                 </div>

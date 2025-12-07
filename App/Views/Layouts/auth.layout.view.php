@@ -9,12 +9,6 @@
 <html lang="sk">
 <head>
     <title><?= App\Configuration::APP_NAME ?></title>
-    <!-- Favicons -->
-    <link rel="apple-touch-icon" sizes="180x180" href="<?= $link->asset('favicons/apple-touch-icon.png') ?>">
-    <link rel="icon" type="image/png" sizes="32x32" href="<?= $link->asset('favicons/favicon-32x32.png') ?>">
-    <link rel="icon" type="image/png" sizes="16x16" href="<?= $link->asset('favicons/favicon-16x16.png') ?>">
-    <link rel="manifest" href="<?= $link->asset('favicons/site.webmanifest') ?>">
-    <link rel="shortcut icon" href="<?= $link->asset('favicons/favicon.ico') ?>">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"
           integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"
@@ -24,9 +18,11 @@
     <script src="<?= $link->asset('js/script.js') ?>"></script>
 </head>
 <body>
-<div class="navbar navbarG navbar-expand" style="justify-content: end; min-height: 118px;">
-    <a class="navbarText nav-link" style="margin: 10px;
-     margin-right: 20px" href="<?= $link->url('home.index') ?>">Return</a>
+<div class="navbar navbarG navbar-expand authLayoutNavbar">
+    <?php if ($_GET['a'] != 'login') { ?>
+        <a class="navbarText nav-link authNavbarButton" href="<?= $link->url('auth.login') ?>">Back to login</a>
+    <?php } ?>
+    <a class="navbarText nav-link authNavbarButton" href="<?= $link->url('home.index') ?>">Home</a>
 </div>
 <div class="container-fluid mt-3">
     <div class="web-content">

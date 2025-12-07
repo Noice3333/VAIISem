@@ -6,15 +6,15 @@
 $view->setLayout('auth');
 ?>
 
-<div class="container" style="background-color: aqua; max-width: 60%; margin: auto;">
+<div class="container loginBox">
     <div class="row justify-content-center">
         <div class="text-center text-danger mb-3">
             <?= $dataVars['message'] ?>
         </div>
         <form class="form-signin" method="post">
             <div class="form-label-group mb-3">
-                <label for="login" class="form-label">Login</label>
-                <input name="login" type="text" id="login" class="form-control" placeholder="Login"
+                <label for="login" class="form-label">Username (the one you filled into the second field when registering)</label>
+                <input name="login" type="text" id="login" class="form-control" placeholder="Username"
                        required autofocus>
             </div>
             <div class="form-label-group mb-3">
@@ -23,14 +23,14 @@ $view->setLayout('auth');
                        placeholder="Password" required>
             </div>
             <div class="row formRow">
-                <div class="col" >
-                    <button class="btn btn-primary customButton" type="submit" name="submit">
+                <div class="col-md-12 col-lg-6 d-flex justify-content-center align-items-center">
+                    <button class="btn btn-primary customButton mb-3" type="submit" name="submit">
                         Log in
                     </button>
                 </div>
-                <div class="col">
-                    <button type="button" class="btn btn-danger customButton">
-                        <a class="nav-link" href="<?= $link->url('auth.register') ?>">Register</a>
+                <div class="col-md-12 col-lg-6 d-flex justify-content-center align-items-center">
+                    <button type="button" class="btn btn-danger customButton mb-3">
+                        <a class="nav-link" href="<?= $link->url('auth.register') ?>">Sign up</a>
                     </button>
                 </div>
             </div>
