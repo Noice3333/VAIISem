@@ -49,12 +49,12 @@ class AuthController extends BaseController
         if ($request->hasValue('submit')) {
             $logged = $this->app->getAuth()->login($request->value('login'), $request->value('password'));
             if ($logged) {
-                return $this->redirect($this->url("admin.index"));
+                return $this->redirect($this->url("user.index"));
             }
         }
 
         $message = $logged === false ? 'Zlý login alebo heslo!' : null;
-        return $this->html(compact("message"));
+        return $this->html(['message' => $message], 'login');
     }
 
     /**
@@ -75,14 +75,26 @@ class AuthController extends BaseController
     {
         $registered = null;
         if ($request->hasValue('submit')) {
-            $registered = $this->app->getAuth()->register($request->value('login'),
+            $registered = $this->app->getAuth()->register($request->value('name'),
+                $request->value('login'),
                 $request->value('password'), $request->value('repeat_password'));
-            if ($registered) {
+            if ($registered === 0) {
                 return $this->redirect($this->url("user.index"));
             }
         }
 
-        $message = $registered === false ? 'Nepodarilo sa zaregistrovať!' : null;
-        return $this->html(compact("message"));
+        $message = null;
+        switch($registered) {
+            case -1:
+                $message = "Používateľské meno už je zabraté!";
+                break;
+            case -2:
+                $message = "Heslo a opakované heslo sa líšia!";
+                break;
+            case -3:
+                $message = "Nepodarilo sa zaregistrovať! (Serverová chyba)";
+                break;
+    }
+        return $this->html(['message' => $message]);
     }
 }

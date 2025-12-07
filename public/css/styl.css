@@ -1,5 +1,5 @@
 .navbar {
-    border-bottom: 1px solid blue;
+    border-bottom: 2px solid blue;
 }
 
 
@@ -15,4 +15,23 @@
 
 .formRow {
     padding: 5px;
+}
+
+.screenHigh {
+    display: flex;
+    flex-direction: column;
+}
+
+.borderSep {
+    border-right: blue medium solid;
+}
+
+.navbarG {
+    background-color: cornflowerblue;
+}
+
+.navbarText {
+    font-weight: bold;
+    font-size: 20px;
+    color: white;
 }

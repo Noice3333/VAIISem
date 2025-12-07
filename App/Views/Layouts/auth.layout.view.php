@@ -24,8 +24,9 @@
     <script src="<?= $link->asset('js/script.js') ?>"></script>
 </head>
 <body>
-<div class="navbar bg-light navbar-expand" style="justify-content: end">
-    <a style="margin: 10px; margin-right: 20px" href="<?= $link->url('home.index') ?>">Return</a>
+<div class="navbar navbarG navbar-expand" style="justify-content: end; min-height: 118px;">
+    <a class="navbarText nav-link" style="margin: 10px;
+     margin-right: 20px" href="<?= $link->url('home.index') ?>">Return</a>
 </div>
 <div class="container-fluid mt-3">
     <div class="web-content">
