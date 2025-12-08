@@ -59,4 +59,42 @@ class HomeController extends BaseController
     {
         return $this->html();
     }
+
+    public function account(Request $request): Response
+    {
+        $logged = null;
+        $message = null;
+        if ($request->hasValue('submit')) {
+            $logged = $this->app->getAuth()->edit($request->value('name'),
+                $request->value('login'),
+                $request->value('password'));
+            switch($logged) {
+                case 1:
+                    break;
+                case 0:
+                    $message = "Changes made.";
+                    break;
+                case -1:
+                    $message = "User not found (this should not happen)";
+                    break;
+                case -2:
+                    $message = "Edit failed (server error)";
+                    break;
+                case -3:
+                    $message = "Username already taken";
+                    break;
+            }
+        } else if ($request->hasValue('delete')) {
+            $logged = $this->app->getAuth()->delete();
+            if (!$logged) {
+                $message = "Deletion failed (server error)";
+            }
+            return $this->redirect($this->url("home.index"));
+        }
+
+        return $this->html(
+            [
+                'message' => $message
+            ]);
+    }
 }

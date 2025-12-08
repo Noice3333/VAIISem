@@ -53,7 +53,7 @@ class AuthController extends BaseController
             }
         }
 
-        $message = $logged === false ? 'Zlý login alebo heslo!' : null;
+        $message = $logged === false ? 'Incorrect login or password' : null;
         return $this->html(['message' => $message], 'login');
     }
 
@@ -86,13 +86,13 @@ class AuthController extends BaseController
         $message = null;
         switch($registered) {
             case -1:
-                $message = "Používateľské meno už je zabraté!";
+                $message = "Username already taken";
                 break;
             case -2:
-                $message = "Heslo a opakované heslo sa líšia!";
+                $message = "Password mismatch";
                 break;
             case -3:
-                $message = "Nepodarilo sa zaregistrovať! (Serverová chyba)";
+                $message = "Registration failed (server error)";
                 break;
     }
         return $this->html(['message' => $message]);

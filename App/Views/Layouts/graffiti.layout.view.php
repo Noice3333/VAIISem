@@ -30,8 +30,11 @@
             </li>
         </ul>
         <?php if ($auth?->isLogged()) { ?>
-            <span class="navbar-text">Logged in user: <b><?= $auth?->user?->getName() ?></b></span>
+            <span class="navbarText">Logged in user: <b><?= $auth?->user?->getName() ?></b></span>
             <ul class="navbar-nav ms-auto">
+                <li class="nav-item">
+                    <a class="nav-link navbarText" href="<?= $link->url('home.account') ?>">Account</a>
+                </li>
                 <li class="nav-item">
                     <a class="nav-link navbarText" href="<?= $link->url('auth.logout') ?>">Log out</a>
                 </li>
