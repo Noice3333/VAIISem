@@ -73,28 +73,18 @@ class AuthController extends BaseController
 
     public function register(Request $request): Response
     {
-        $registered = null;
+        $message = null;
         if ($request->hasValue('submit')) {
-            $registered = $this->app->getAuth()->register($request->value('name'),
+            $message = \App\Models\User::register(
+                $request->value('name'),
                 $request->value('login'),
-                $request->value('password'), $request->value('repeat_password'));
-            if ($registered === 0) {
+                $request->value('password'),
+                $request->value('repeat_password')
+            );
+            if ($message === null) {
                 return $this->redirect($this->url("user.index"));
             }
         }
-
-        $message = null;
-        switch($registered) {
-            case -1:
-                $message = "Username already taken";
-                break;
-            case -2:
-                $message = "Password mismatch";
-                break;
-            case -3:
-                $message = "Registration failed (server error)";
-                break;
-    }
         return $this->html(['message' => $message]);
     }
 }

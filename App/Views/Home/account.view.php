@@ -1,6 +1,9 @@
 <?php
 /** @var array $data */
 /** @var \Framework\Support\LinkGenerator $link */
+
+// Ensure $message is defined to avoid undefined variable notices in the view
+$message = $data['message'] ?? null;
 ?>
 
 <form class="form-signin" method="post">
@@ -29,7 +32,8 @@
             </button>
         </div>
         <div class="col-md-12 col-lg-6 d-flex justify-content-center align-items-center">
-            <button type="submit" class="btn btn-danger customButton mb-3" name="delete">
+            <button type="submit" class="btn btn-danger customButton mb-3" name="delete"
+                    onclick="return confirm('Are you sure you want to delete your account? This action cannot be undone.');">
                 Delete
             </button>
         </div>

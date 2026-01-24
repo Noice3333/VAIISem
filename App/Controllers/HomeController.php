@@ -2,9 +2,14 @@
 
 namespace App\Controllers;
 
+use App\Models\User;
 use Framework\Core\BaseController;
 use Framework\Http\Request;
 use Framework\Http\Responses\Response;
+use Framework\DB\Connection;
+use Exception;
+use PDO;
+use JsonException;
 
 /**
  * Class HomeController
@@ -57,44 +62,114 @@ class HomeController extends BaseController
 
     public function post(Request $request): Response
     {
+        // If client requests JSON (explicit ?json=1 or wants JSON/has JSON body) handle as API
+        $isJsonRequest = ($request->get('json') === '1') || $request->isJson() || $request->wantsJson();
+        if ($isJsonRequest) {
+            // Use DB connection
+            try {
+                $conn = Connection::getInstance();
+            } catch (Exception $e) {
+                return $this->json(['error' => 'DB connection error'])->setStatusCode(500);
+            }
+
+            if ($request->isGet()) {
+                try {
+                    //$stmt = $conn->prepare('SELECT id, user_id, text, latitude, longitude, created_at FROM posts ORDER BY created_at DESC');
+                    //$stmt->execute([]);
+                    //$rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                    //return $this->json($rows);
+                    $rows = \App\Models\Post::getAll(null, [], 'created_at DESC');
+                    return $this->json(array_map(function($p){ return [
+                        'id' => $p->getId(),
+                        'user_id' => $p->getUserId(),
+                        'text' => $p->getText(),
+                        'latitude' => $p->getLatitude(),
+                        'longitude' => $p->getLongitude(),
+                        'created_at' => $p->getCreatedAt()
+                    ];}, $rows));
+                } catch (Exception $e) {
+                    return $this->json(['error' => 'Query failed'])->setStatusCode(500);
+                }
+            }
+
+            if ($request->isPost()) {
+                try {
+                    $input = $request->json();
+                } catch (JsonException $je) {
+                    return $this->json(['error' => 'Invalid JSON'])->setStatusCode(400);
+                }
+
+                // Normalize object => array
+                if (is_object($input)) {
+                    $input = json_decode(json_encode($input), true);
+                }
+
+                // Support alternate naming lat/lng or latitude/longitude
+                $latKey = array_key_exists('lat', $input) ? 'lat' : (array_key_exists('latitude', $input) ? 'latitude' : null);
+                $lngKey = array_key_exists('lng', $input) ? 'lng' : (array_key_exists('longitude', $input) ? 'longitude' : null);
+
+                if (!isset($input['text'], $latKey, $lngKey)) {
+                    return $this->json(['error' => 'Missing fields'])->setStatusCode(400);
+                }
+
+                // ensure text is a string
+                $text = trim((string)($input['text'] ?? ''));
+                $lat = (float)$input[$latKey];
+                $lng = (float)$input[$lngKey];
+
+                if ($text === '' || abs($lat) > 90 || abs($lng) > 180) {
+                    return $this->json(['error' => 'Invalid data'])->setStatusCode(400);
+                }
+
+                try {
+                    //session_start();
+                    $userId = isset($_SESSION['user']) && method_exists($_SESSION['user'], 'getId') ? $_SESSION['user']->getId() : null;
+
+                    $post = \App\Models\Post::create([
+                        'user_id' => $userId,
+                        'text' => $text,
+                        'latitude' => $lat,
+                        'longitude' => $lng
+                    ]);
+
+                    return $this->json(['ok' => true, 'id' => $post->getId()])->setStatusCode(201);
+                } catch (Exception $e) {
+                    return $this->json(['error' => 'Insert failed'])->setStatusCode(500);
+                }
+            }
+
+            return $this->json(['error' => 'Method not allowed'])->setStatusCode(405);
+        }
+
+        // Non-API fallback: return HTML view
         return $this->html();
     }
 
     public function account(Request $request): Response
     {
-        $logged = null;
         $message = null;
         if ($request->hasValue('submit')) {
-            $logged = $this->app->getAuth()->edit($request->value('name'),
+            $userId = $_SESSION['user']->getId();
+            $message = User::edit(
+                $userId,
+                $request->value('name'),
                 $request->value('login'),
-                $request->value('password'));
-            switch($logged) {
-                case 1:
-                    break;
-                case 0:
-                    $message = "Changes made.";
-                    break;
-                case -1:
-                    $message = "User not found (this should not happen)";
-                    break;
-                case -2:
-                    $message = "Edit failed (server error)";
-                    break;
-                case -3:
-                    $message = "Username already taken";
-                    break;
+                $request->value('password')
+            );
+            if ($message === null) {
+                $message = "Changes made.";
             }
         } else if ($request->hasValue('delete')) {
-            $logged = $this->app->getAuth()->delete();
-            if (!$logged) {
-                $message = "Deletion failed (server error)";
+            $userId = $_SESSION['user']->getId();
+            $message = User::deleteAccount($userId);
+            if ($message === null) {
+                return $this->redirect($this->url("home.index"));
             }
-            return $this->redirect($this->url("home.index"));
         }
-
-        return $this->html(
-            [
-                'message' => $message
-            ]);
+        return $this->html([
+            'message' => $message
+        ]);
     }
+
+    // Removed register, edit, delete methods from controller. All business logic is now in the User model.
 }
