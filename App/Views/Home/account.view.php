@@ -1,12 +1,14 @@
 <?php
 /** @var array $data */
 /** @var \Framework\Support\LinkGenerator $link */
+/** @var \Framework\Core\IAuthenticator $auth */
 
 // Ensure $message is defined to avoid undefined variable notices in the view
 $message = $data['message'] ?? null;
 ?>
 
 <form class="form-signin" method="post">
+    <?php if ($auth?->isLogged()) { ?>
     <div class="m-3" role="alert">
         <?= $message ?>
     </div>
@@ -38,4 +40,9 @@ $message = $data['message'] ?? null;
             </button>
         </div>
     </div>
+    <?php } else { ?>
+    <div class="m-3" role="alert">
+        You need to be logged in to view this. How did you get here.
+    </div>
+    <?php } ?>
 </form>

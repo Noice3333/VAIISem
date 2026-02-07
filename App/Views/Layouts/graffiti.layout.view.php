@@ -30,12 +30,12 @@
             <img class="smallIcon" src="<?= $link->asset('images/graffiti.png') ?>"
                  title="<?= App\Configuration::APP_NAME ?>" alt="Return">
         </a>
-        <ul class="navbar-nav me-auto">
-            <li class="nav-item">
-                <a class="nav-link navbarText" href="<?= $link->url('home.post') ?>">Posts</a>
-            </li>
-        </ul>
         <?php if ($auth?->isLogged()) { ?>
+            <ul class="navbar-nav me-auto">
+                <li class="nav-item">
+                    <a class="nav-link navbarText" href="<?= $link->url('home.post') ?>">Posts</a>
+                </li>
+            </ul>
             <span class="navbarText">Logged in user: <b><?= $auth?->user?->getName() ?></b></span>
             <ul class="navbar-nav ms-auto">
                 <li class="nav-item">

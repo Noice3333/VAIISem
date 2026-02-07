@@ -27,6 +27,10 @@
                 const newPostUrl = '<?= $link->url("post.new") ?>';
                 const loginUrl = '<?= \App\Configuration::LOGIN_URL ?>';
 
+                // Read optional open_post_id from query string so other pages can link back here
+                const urlParams = new URLSearchParams(window.location.search);
+                const openPostId = urlParams.get('open_post_id');
+
                 // Diagnostic: ensure Leaflet is loaded
                 if (typeof L === 'undefined') {
                     console.error('Leaflet (L) is not loaded. Check that leaflet.js is included in the layout head.');
@@ -105,7 +109,7 @@
                             const res = await fetch(apiUrl, { credentials: 'same-origin' });
                             if (!res.ok) {
                                 console.warn('Failed to load posts', res.status);
-                                return;
+                                return [];
                             }
                             const posts = await res.json();
                             posts.forEach(p => {
@@ -121,10 +125,41 @@
                                     showSidebar(p);
                                 });
 
+                                // store a reference to the post on the marker for later lookup
+                                m.__postId = p.id;
+
                                 markers.addLayer(m);
                             });
+
+                            // If the page was requested with open_post_id, try to find it and center/open it
+                            if (openPostId) {
+                                // Find marker with matching post id
+                                let found = null;
+                                markers.eachLayer(function(layer) {
+                                    if (layer && layer.__postId && String(layer.__postId) === String(openPostId)) {
+                                        found = layer;
+                                    }
+                                });
+                                if (found) {
+                                    const latlng = found.getLatLng();
+                                    map.setView(latlng, 16);
+                                    found.openPopup();
+                                    // attempt to show sidebar with the post details
+                                    const matchedPost = (posts || []).find(x => String(x.id) === String(openPostId));
+                                    if (matchedPost) showSidebar(matchedPost);
+                                    // remove the param from URL so refresh won't keep opening
+                                    try {
+                                        const u = new URL(window.location.href);
+                                        u.searchParams.delete('open_post_id');
+                                        window.history.replaceState({}, '', u.toString());
+                                    } catch (e) {}
+                                }
+                            }
+
+                            return posts;
                         } catch (e) {
                             console.error('Error loading posts:', e);
+                            return [];
                         }
                     }
 
