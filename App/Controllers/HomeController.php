@@ -79,14 +79,24 @@ class HomeController extends BaseController
                     //$rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
                     //return $this->json($rows);
                     $rows = \App\Models\Post::getAll(null, [], 'created_at DESC');
-                    return $this->json(array_map(function($p){ return [
-                        'id' => $p->getId(),
-                        'user_id' => $p->getUserId(),
-                        'text' => $p->getText(),
-                        'latitude' => $p->getLatitude(),
-                        'longitude' => $p->getLongitude(),
-                        'created_at' => $p->getCreatedAt()
-                    ];}, $rows));
+                    return $this->json(array_map(function($p){
+                        $user = null;
+                        if ($p->getUserId() !== null) {
+                            try { $user = \App\Models\User::getOne($p->getUserId()); } catch (\Throwable $t) { $user = null; }
+                        }
+                        $username = $user ? ($user->getUsername() ?? ($user->login ?? null)) : null;
+                        return [
+                            'id' => $p->getId(),
+                            'user_id' => $p->getUserId(),
+                            'username' => $username,
+                            'title' => $p->getTitle(),
+                            'description' => $p->getDescription(),
+                            'image' => $p->getImage(),
+                            'latitude' => $p->getLatitude(),
+                            'longitude' => $p->getLongitude(),
+                            'created_at' => $p->getCreatedAt()
+                        ];
+                    }, $rows));
                 } catch (Exception $e) {
                     return $this->json(['error' => 'Query failed'])->setStatusCode(500);
                 }

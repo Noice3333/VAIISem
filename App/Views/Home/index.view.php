@@ -22,6 +22,10 @@
             <script>
                 // Framework API URL (generated server-side so it resolves correctly)
                 const apiUrl = '<?= $link->url("home.post", ["json"=>1]) ?>';
+                // Expose auth and new-post route to JS
+                const isLogged = <?= (isset($auth) && $auth?->isLogged()) ? 'true' : 'false' ?>;
+                const newPostUrl = '<?= $link->url("post.new") ?>';
+                const loginUrl = '<?= \App\Configuration::LOGIN_URL ?>';
 
                 // Diagnostic: ensure Leaflet is loaded
                 if (typeof L === 'undefined') {
@@ -45,7 +49,9 @@
 
                     function showSidebar(post) {
                         // Build HTML for the post
-                        const text = escapeHtml(post.text || '');
+                        const title = escapeHtml(post.title || '');
+                        const description = escapeHtml(post.description || '');
+                        const image = post.image ? escapeHtml(post.image) : '';
                         const when = escapeHtml(post.created_at || post.created || '');
                         const lat = escapeHtml(post.latitude !== undefined ? post.latitude : post.lat || '');
                         const lng = escapeHtml(post.longitude !== undefined ? post.longitude : post.lng || '');
@@ -53,12 +59,13 @@
 
                         sidebarContent.innerHTML = `
                             <div>
-                                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-                                    <h5 style="margin:0;">Post</h5>
+                                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+                                    <h5 style="margin:0;">${title || 'Post'}</h5>
                                     <button id="closeSidebar" class="btn btn-sm btn-outline-secondary">Close</button>
                                 </div>
-                                <p style="margin:0 0 8px 0;"><strong>${text}</strong></p>
-                                <p style="margin:0 0 6px 0;"><small>By: ${author}</small></p>
+                                <div style="margin-bottom:8px;"><small class="text-muted">${author ? 'By ' + author : ''}</small></div>
+                                ${image ? ('<div style="margin-bottom:10px;text-align:center;"><img src="' + image + '" style="max-width:100%;height:auto;border-radius:6px;" alt="Post image"></div>') : ''}
+                                <p style="margin:0 0 8px 0;">${description}</p>
                                 <p style="margin:0 0 6px 0;"><small>At: ${when}</small></p>
                                 <p style="margin:0 0 6px 0;"><small>Lat: ${lat} Lng: ${lng}</small></p>
                             </div>
@@ -107,7 +114,7 @@
                                 if (isNaN(lat) || isNaN(lng)) return;
                                 const m = L.marker([lat, lng]);
                                 const when = p.created_at || p.created || '';
-                                m.bindPopup('<div><strong>' + escapeHtml(p.text || '') + '</strong><br/><small>' + escapeHtml(when) + '</small></div>');
+                                m.bindPopup('<div><strong>' + escapeHtml(p.title || '') + '</strong><br/><small>' + escapeHtml(when) + '</small></div>');
 
                                 // Open the sidebar with post details when marker is clicked
                                 m.on('click', function() {
@@ -121,9 +128,9 @@
                         }
                     }
 
-                    // Floating "Create post" button (bottom-right). When clicked it arms
-                    // the UI: the next left-click on the map will prompt the user to create
-                    // a post. Hovering while armed lets you cancel (turns red and says "Stop creating post").
+                    // Floating "Create post" button (bottom-right). Clicking it will either
+                    // redirect to login (when not logged) or arm the next map click which
+                    // sends the user to the New Post form with lat/lng in the query.
                     (function() {
                         const createBtn = document.createElement('button');
                         createBtn.id = 'createPostBtn';
@@ -143,7 +150,6 @@
                             boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
                             cursor: 'pointer'
                         });
-                        createBtn.title = 'Click to arm creating a post; then click on the map to set location';
                         document.body.appendChild(createBtn);
 
                         let armed = false;
@@ -154,77 +160,41 @@
                                 createBtn.style.background = '#ffc107';
                                 createBtn.style.color = '#212529';
                                 createBtn.innerText = 'Click on map...';
-                                createBtn.title = 'Click again to stop creating a post';
                             } else {
                                 createBtn.style.background = '#28a745';
                                 createBtn.style.color = 'white';
                                 createBtn.innerText = '＋ Create post';
-                                createBtn.title = 'Click to arm creating a post; then click on the map to set location';
                             }
                         }
 
-                        // Toggle arm on click. If armed and clicked, cancel arming.
+                        // Click behavior: if not logged, go to login; otherwise toggle arm
                         createBtn.addEventListener('click', function(ev) {
                             ev.stopPropagation();
+                            if (!isLogged) { window.location.href = loginUrl; return; }
                             setArmed(!armed);
                         });
 
-                        // Hover behavior: when armed, hover turns button red and indicates cancel action
+                        // Hover-to-cancel while armed
                         createBtn.addEventListener('mouseenter', function() {
                             if (!armed) return;
-                            createBtn.style.background = '#dc3545'; // red
-                            createBtn.style.color = 'white';
+                            createBtn.style.background = '#dc3545';
                             createBtn.innerText = 'Stop creating post';
                         });
                         createBtn.addEventListener('mouseleave', function() {
                             if (!armed) return;
-                            // revert to armed appearance
                             createBtn.style.background = '#ffc107';
-                            createBtn.style.color = '#212529';
                             createBtn.innerText = 'Click on map...';
                         });
 
-                        // Map click handler: only triggers create when armed
-                        map.on('click', async function(e) {
+                        // Map click handler: when armed, redirect to the New Post form with coords
+                        map.on('click', function(e) {
                             if (!armed) return; // ignore normal map clicks
-                            // disarm immediately
                             setArmed(false);
-                            const latlng = e.latlng;
-                            // prompt for text-only content
-                            const text = prompt('Enter post text (text-only):');
-                            if (text === null) return; // cancelled
-                            const trimmed = text.trim();
-                            if (trimmed === '') {
-                                alert('Post text is empty. Aborting.');
-                                return;
-                            }
-
-                            const payload = { text: trimmed, lat: latlng.lat, lng: latlng.lng };
-
-                            try {
-                                const res = await fetch(apiUrl, {
-                                    method: 'POST',
-                                    headers: { 'Content-Type': 'application/json' },
-                                    credentials: 'same-origin',
-                                    body: JSON.stringify(payload)
-                                });
-
-                                let data;
-                                const ct = res.headers.get('content-type') || '';
-                                if (ct.includes('application/json')) data = await res.json(); else data = { raw: await res.text() };
-
-                                if (res.ok) {
-                                    // reload markers and center silently (no confirmation dialog)
-                                    await loadPosts();
-                                    try { map.setView([payload.lat, payload.lng], Math.max(map.getZoom(), 13)); } catch (err) {}
-                                } else {
-                                    const errMsg = (data && (data.error || data.message)) || (data && data.raw) || ('HTTP ' + res.status);
-                                    alert('Error creating post: ' + errMsg);
-                                }
-                            } catch (err) {
-                                console.error('Network error creating post', err);
-                                alert('Network error creating post');
-                            }
+                            const lat = e.latlng.lat;
+                            const lng = e.latlng.lng;
+                            if (!isLogged) { window.location.href = loginUrl; return; }
+                            const sep = newPostUrl.indexOf('?') !== -1 ? '&' : '?';
+                            window.location.href = newPostUrl + sep + 'lat=' + encodeURIComponent(lat) + '&lng=' + encodeURIComponent(lng);
                         });
                     })();
 
