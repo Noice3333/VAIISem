@@ -121,52 +121,112 @@
                         }
                     }
 
-                    // On map click, allow creating a post by sending JSON to the API endpoint.
-                    // The server expects JSON with fields: { text, lat, lng } and the route is the same
-                    // endpoint used for loading posts (apiUrl includes ?json=1).
-                    map.on('click', async function(e) {
-                        // Ask for text-only post content
-                        const text = prompt('Enter post text (text-only):');
-                        if (text === null) return; // user cancelled
-                        const trimmed = text.trim();
-                        if (trimmed === '') {
-                            alert('Post text is empty. Aborting.');
-                            return;
+                    // Floating "Create post" button (bottom-right). When clicked it arms
+                    // the UI: the next left-click on the map will prompt the user to create
+                    // a post. Hovering while armed lets you cancel (turns red and says "Stop creating post").
+                    (function() {
+                        const createBtn = document.createElement('button');
+                        createBtn.id = 'createPostBtn';
+                        createBtn.type = 'button';
+                        createBtn.innerText = '＋ Create post';
+                        Object.assign(createBtn.style, {
+                            position: 'fixed',
+                            right: '18px',
+                            bottom: '18px',
+                            zIndex: 12000,
+                            padding: '10px 14px',
+                            border: 'none',
+                            borderRadius: '28px',
+                            background: '#28a745',
+                            color: 'white',
+                            fontSize: '14px',
+                            boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
+                            cursor: 'pointer'
+                        });
+                        createBtn.title = 'Click to arm creating a post; then click on the map to set location';
+                        document.body.appendChild(createBtn);
+
+                        let armed = false;
+
+                        function setArmed(v) {
+                            armed = Boolean(v);
+                            if (armed) {
+                                createBtn.style.background = '#ffc107';
+                                createBtn.style.color = '#212529';
+                                createBtn.innerText = 'Click on map...';
+                                createBtn.title = 'Click again to stop creating a post';
+                            } else {
+                                createBtn.style.background = '#28a745';
+                                createBtn.style.color = 'white';
+                                createBtn.innerText = '＋ Create post';
+                                createBtn.title = 'Click to arm creating a post; then click on the map to set location';
+                            }
                         }
 
-                        const payload = { text: trimmed, lat: e.latlng.lat, lng: e.latlng.lng };
+                        // Toggle arm on click. If armed and clicked, cancel arming.
+                        createBtn.addEventListener('click', function(ev) {
+                            ev.stopPropagation();
+                            setArmed(!armed);
+                        });
 
-                        try {
-                            const res = await fetch(apiUrl, {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                credentials: 'same-origin',
-                                body: JSON.stringify(payload)
-                            });
+                        // Hover behavior: when armed, hover turns button red and indicates cancel action
+                        createBtn.addEventListener('mouseenter', function() {
+                            if (!armed) return;
+                            createBtn.style.background = '#dc3545'; // red
+                            createBtn.style.color = 'white';
+                            createBtn.innerText = 'Stop creating post';
+                        });
+                        createBtn.addEventListener('mouseleave', function() {
+                            if (!armed) return;
+                            // revert to armed appearance
+                            createBtn.style.background = '#ffc107';
+                            createBtn.style.color = '#212529';
+                            createBtn.innerText = 'Click on map...';
+                        });
 
-                            // Try to parse a JSON response when possible
-                            let data;
-                            const ct = res.headers.get('content-type') || '';
-                            if (ct.includes('application/json')) {
-                                data = await res.json();
-                            } else {
-                                data = { raw: await res.text() };
+                        // Map click handler: only triggers create when armed
+                        map.on('click', async function(e) {
+                            if (!armed) return; // ignore normal map clicks
+                            // disarm immediately
+                            setArmed(false);
+                            const latlng = e.latlng;
+                            // prompt for text-only content
+                            const text = prompt('Enter post text (text-only):');
+                            if (text === null) return; // cancelled
+                            const trimmed = text.trim();
+                            if (trimmed === '') {
+                                alert('Post text is empty. Aborting.');
+                                return;
                             }
 
-                            if (res.ok) {
-                                // reload markers and optionally center the map at the new post
-                                await loadPosts();
-                                try { map.setView([payload.lat, payload.lng], Math.max(map.getZoom(), 13)); } catch (e) {}
-                                alert('Post created');
-                            } else {
-                                const errMsg = (data && (data.error || data.message)) || (data && data.raw) || ('HTTP ' + res.status);
-                                alert('Error creating post: ' + errMsg);
+                            const payload = { text: trimmed, lat: latlng.lat, lng: latlng.lng };
+
+                            try {
+                                const res = await fetch(apiUrl, {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    credentials: 'same-origin',
+                                    body: JSON.stringify(payload)
+                                });
+
+                                let data;
+                                const ct = res.headers.get('content-type') || '';
+                                if (ct.includes('application/json')) data = await res.json(); else data = { raw: await res.text() };
+
+                                if (res.ok) {
+                                    // reload markers and center silently (no confirmation dialog)
+                                    await loadPosts();
+                                    try { map.setView([payload.lat, payload.lng], Math.max(map.getZoom(), 13)); } catch (err) {}
+                                } else {
+                                    const errMsg = (data && (data.error || data.message)) || (data && data.raw) || ('HTTP ' + res.status);
+                                    alert('Error creating post: ' + errMsg);
+                                }
+                            } catch (err) {
+                                console.error('Network error creating post', err);
+                                alert('Network error creating post');
                             }
-                        } catch (err) {
-                            console.error('Network error creating post', err);
-                            alert('Network error creating post');
-                        }
-                    });
+                        });
+                    })();
 
                     // Try to center on user's location if available
                     if (navigator.geolocation) {
