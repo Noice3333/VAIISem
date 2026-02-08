@@ -70,18 +70,18 @@ class PostController extends BaseController
 
                 if (!is_writable($uploadsDir)) {
                     error_log('PostController: uploads dir not writable: ' . $uploadsDir);
-                }
-
-                $origName = $uploaded->getName();
-                $ext = pathinfo($origName, PATHINFO_EXTENSION);
-                $ext = preg_replace('/[^a-zA-Z0-9]/', '', strtolower((string)$ext));
-                $safe = time() . '_' . bin2hex(random_bytes(6)) . ($ext ? ('.' . $ext) : '');
-                $dest = $uploadsDir . DIRECTORY_SEPARATOR . $safe;
-
-                if ($uploaded->store($dest)) {
-                    $imagePath = '/uploads/' . $safe;
                 } else {
-                    error_log('PostController: failed to move uploaded file to ' . $dest);
+                    $origName = $uploaded->getName();
+                    $ext = pathinfo($origName, PATHINFO_EXTENSION);
+                    $ext = preg_replace('/[^a-zA-Z0-9]/', '', strtolower((string)$ext));
+                    $safe = time() . '_' . bin2hex(random_bytes(6)) . ($ext ? ('.' . $ext) : '');
+                    $dest = $uploadsDir . DIRECTORY_SEPARATOR . $safe;
+
+                    if ($uploaded->store($dest)) {
+                        $imagePath = '/uploads/' . $safe;
+                    } else {
+                        error_log('PostController: failed to move uploaded file to ' . $dest);
+                    }
                 }
             }
         } catch (\Throwable $e) {
@@ -171,12 +171,22 @@ class PostController extends BaseController
         $lat = $request->post('lat');
         $lng = $request->post('lng');
 
-        if ($title === '' || $description === '' || $lat === null || $lng === null) {
+        // SECURITY: Server-side validation of all inputs
+        if (empty($title) || strlen($title) < 1 || strlen($title) > 255) {
+            return $this->redirect($this->url('post.edit', ['id' => $id]));
+        }
+
+        if (empty($description) || strlen($description) < 1 || strlen($description) > 5000) {
+            return $this->redirect($this->url('post.edit', ['id' => $id]));
+        }
+
+        if ($lat === null || $lng === null) {
             return $this->redirect($this->url('post.edit', ['id' => $id]));
         }
 
         $lat = (float)$lat;
         $lng = (float)$lng;
+        // SECURITY: Validate geographic coordinates
         if (abs($lat) > 90 || abs($lng) > 180) {
             return $this->redirect($this->url('post.edit', ['id' => $id]));
         }

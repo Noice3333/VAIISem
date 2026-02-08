@@ -68,16 +68,32 @@ class User extends Model implements IIdentity
      */
     public static function register(string $name, string $username, string $password, string $repeat_password): ?string
     {
-        $user = self::getAll('`username` like ?', [$username]);
-        if ($user) {
-            return "Username already taken";
+        // SECURITY: Validate input lengths and types on server side
+        $name = trim((string)$name);
+        $username = trim((string)$username);
+
+        if (empty($name) || strlen($name) < 1 || strlen($name) > 255) {
+            return "Name must be between 1 and 255 characters";
+        }
+        if (empty($username) || strlen($username) < 3 || strlen($username) > 50) {
+            return "Username must be between 3 and 50 characters";
+        }
+        if (empty($password) || strlen($password) < 8) {
+            return "Password must be at least 8 characters long";
         }
         if ($password !== $repeat_password) {
             return "Passwords do not match";
         }
+
+        $user = self::getAll('`username` like ?', [$username]);
+        if ($user) {
+            return "Username already taken";
+        }
+
         $user = new self();
         $user->setName($name);
-        $user->setPassword($password);
+        // SECURITY: Hash password using bcrypt
+        $user->setPassword(password_hash($password, PASSWORD_BCRYPT));
         $user->setUsername($username);
         try {
             $user->save();
@@ -99,10 +115,20 @@ class User extends Model implements IIdentity
         }
         $numberOfChanges = 0;
         if ($name) {
+            // SECURITY: Validate name length on server side
+            $name = trim((string)$name);
+            if (empty($name) || strlen($name) < 1 || strlen($name) > 255) {
+                return "Name must be between 1 and 255 characters";
+            }
             $user->setName($name);
             $numberOfChanges++;
         }
         if ($username && $username != $user->getUsername()) {
+            // SECURITY: Validate username length on server side
+            $username = trim((string)$username);
+            if (empty($username) || strlen($username) < 3 || strlen($username) > 50) {
+                return "Username must be between 3 and 50 characters";
+            }
             $others = self::getAll('`username` like ?', [$username]);
             if ($others) {
                 return "Username already taken";
@@ -111,7 +137,11 @@ class User extends Model implements IIdentity
             $numberOfChanges++;
         }
         if ($password) {
-            $user->setPassword($password);
+            // SECURITY: Validate and hash password on server side
+            if (strlen($password) < 8) {
+                return "Password must be at least 8 characters long";
+            }
+            $user->setPassword(password_hash($password, PASSWORD_BCRYPT));
             $numberOfChanges++;
         }
         try {

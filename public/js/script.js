@@ -62,33 +62,33 @@
         const author = escapeHtml(post.user_name || post.author || post.username || '');
 
         return `
-            <div>
-                <div class="sidebar-header" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
-                    <h5 style="margin:0;">${title || 'Post'}</h5>
+            <div style="padding:0;">
+                <div class="sidebar-header" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;padding-bottom:12px;border-bottom:2px solid #0056b3;">
+                    <h4 style="margin:0;font-size:22px;font-weight:600;color:#212529;"><strong>Title:</strong> ${title || 'Post'}</h4>
                     <button id="closeSidebar" class="btn btn-sm btn-outline-secondary">Close</button>
                 </div>
-                <div style="margin-bottom:8px;"><small class="text-muted">${author ? 'By ' + author : ''}</small></div>
-                ${image ? ('<div class="sidebar-image" style="margin-bottom:10px;text-align:center;"><img src="' + image + '" alt="Post image"/></div>') : ''}
-                <p style="margin:0 0 8px 0;">${description}</p>
-                <p style="margin:0 0 6px 0;"><small>At: ${when}</small></p>
-                <p style="margin:0 0 6px 0;"><small>Lat: ${lat} Lng: ${lng}</small></p>
+                <div style="margin-bottom:8px;font-size:14px;color:#495057;"><strong>By:</strong> ${author ? escapeHtml(author) : 'Unknown'}</div>
+                ${image ? ('<div class="sidebar-image" style="margin-bottom:12px;text-align:center;border-radius:6px;overflow:hidden;"><img src="' + image + '" alt="Post image" style="max-width:100%;height:auto;border-radius:6px;"/></div>') : ''}
+                <div style="margin-bottom:12px;font-size:14px;color:#6c757d;"><strong>Posted:</strong> ${when}</div>
+                <p style="margin:0 0 12px 0;font-size:15px;color:#212529;line-height:1.5;"><strong>Description:</strong> ${description}</p>
+                <p style="margin:0 0 12px 0;font-size:13px;color:#6c757d;"><strong>Location:</strong> 📍 ${lat}, ${lng}</p>
 
-                <div id="postActions" style="margin-top:10px;display:flex;gap:8px;align-items:center;">
-                    <button id="postLikeBtn" class="btn btn-sm btn-outline-primary">Like (<span id="postLikeCount">...</span>)</button>
+                <div id="postActions" style="margin-top:16px;display:flex;gap:8px;align-items:center;">
+                    <button id="postLikeBtn" class="btn btn-sm btn-outline-primary" style="font-size:14px;">❤ Like (<span id="postLikeCount">...</span>)</button>
                 </div>
 
-                <hr />
+                <hr style="margin:16px 0;" />
 
                 <div id="commentsContainer">
-                    <h6>Comments</h6>
-                    <div id="commentsList" style="margin-bottom:10px;"></div>
+                    <h5 style="font-size:18px;font-weight:600;color:#212529;margin-bottom:12px;">Comments</h5>
+                    <div id="commentsList" style="margin-bottom:12px;max-height:300px;overflow-y:auto;"></div>
                     ${config.isLogged ? `
                       <div id="commentFormArea">
-                        <textarea id="commentInput" class="form-control" rows="3" placeholder="Write a comment..."></textarea>
-                        <div style="margin-top:6px;text-align:right;">
-                          <button id="submitCommentBtn" class="btn btn-sm btn-primary">Post comment</button>
+                        <textarea id="commentInput" class="form-control" rows="3" placeholder="Write a comment..." style="font-size:14px;"></textarea>
+                        <div style="margin-top:8px;text-align:right;">
+                          <button id="submitCommentBtn" class="btn btn-sm btn-primary" style="font-size:14px;">Post comment</button>
                         </div>
-                      </div>` : `<div><a href="${config.loginUrl}">Log in</a> to comment.</div>`}
+                      </div>` : `<div style="font-size:14px;color:#6c757d;"><a href="${config.loginUrl}">Log in</a> to comment.</div>`}
                 </div>
             </div>
         `;
@@ -191,16 +191,24 @@
                     if (postLikeBtn) { const liked = !!data.post.liked; const cnt = data.post.like_count || 0; postLikeBtn.dataset.liked = liked ? '1' : '0'; postLikeBtn.innerText = (liked ? 'Unlike' : 'Like') + ' (' + cnt + ')'; }
                     const commentsList = document.getElementById('commentsList'); commentsList.innerHTML = '';
                     (data.comments || []).forEach(c => {
-                        const item = document.createElement('div'); item.className = 'mb-2';
-                        const deleteHtml = (config.currentUserId && String(c.user_id) === String(config.currentUserId)) ? ('<button class="btn btn-sm btn-outline-danger delete-comment-btn" data-id="' + c.id + '">Delete</button>') : '';
-                        item.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:flex-start;">
-                            <div><strong>${escapeHtml(c.username || 'Anonymous')}</strong> <small class="text-muted">${escapeHtml(c.created_at || '')}</small>
-                            <div>${escapeHtml(c.content || '')}</div></div>
-                            <div style="text-align:right;">
-                                <button class="btn btn-sm btn-outline-primary comment-like-btn" data-id="${c.id}">❤ <span class="count">${c.like_count}</span></button>
-                                ${deleteHtml}
+                        const item = document.createElement('div');
+                        item.className = 'sidebar-comment-item';
+                        item.style.cssText = 'padding:10px;margin-bottom:10px;background-color:#f8f9fa;border:1px solid #dee2e6;border-radius:4px;';
+                        const deleteHtml = (config.currentUserId && String(c.user_id) === String(config.currentUserId)) ? ('<button class="btn btn-sm btn-outline-danger delete-comment-btn" data-id="' + c.id + '" style="font-size:12px;">Delete</button>') : '';
+                        item.innerHTML = `
+                            <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">
+                                <div style="flex:1;">
+                                    <div style="font-weight:600;color:#212529;font-size:14px;margin-bottom:4px;"><strong>By:</strong> ${escapeHtml(c.username || 'Anonymous')}</div>
+                                    <div style="font-size:12px;color:#6c757d;margin-bottom:6px;"><strong>Posted:</strong> ${escapeHtml(c.created_at || '')}</div>
+                                    <div style="font-size:14px;color:#212529;line-height:1.4;margin-bottom:6px;"><strong>Comment:</strong> ${escapeHtml(c.content || '')}</div>
+                                    <div style="font-size:12px;color:#6c757d;"><span style="display:inline-block;padding:2px 6px;background-color:#fff3cd;border:1px solid #ffc107;border-radius:3px;font-weight:500;color:#856404;">❤ ${c.like_count}</span></div>
+                                </div>
+                                <div style="display:flex;flex-direction:column;gap:4px;align-items:flex-end;">
+                                    <button class="btn btn-sm btn-outline-primary comment-like-btn" data-id="${c.id}" style="font-size:12px;padding:4px 8px;">❤ <span class="count">${c.like_count}</span></button>
+                                    ${deleteHtml}
+                                </div>
                             </div>
-                        </div>`;
+                        `;
                         commentsList.appendChild(item);
                     });
 
@@ -234,7 +242,7 @@
             }
 
             if (postLikeBtn) {
-                postLikeBtn.addEventListener('click', async function(ev){ ev.stopPropagation(); try{ const {res,json} = await jsonFetch(likeApi, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({target_type:'post', target_id: post.id}) }); if (json && json.ok){ const cnt = json.count; if (postLikeCountEl) postLikeCountEl.innerText = cnt; this.dataset.liked = json.liked ? '1' : '0'; this.innerText = (json.liked ? 'Unlike' : 'Like') + ' (' + cnt + ')'; } else if (json && json.error && res.status === 401) { alert('Please log in to like posts.'); } }catch(e){console.error(e);} });
+                postLikeBtn.addEventListener('click', async function(ev){ ev.stopPropagation(); try{ const {res,json} = await jsonFetch(likeApi, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({target_type:'post', target_id: post.id}) }); if (json && json.ok){ const cnt = json.count; if (postLikeCountEl) postLikeCountEl.innerText = cnt; this.dataset.liked = json.liked ? '1' : '0'; this.innerText = '❤ ' + (json.liked ? 'Unlike' : 'Like') + ' (' + cnt + ')'; } else if (json && json.error && res.status === 401) { alert('Please log in to like posts.'); } }catch(e){console.error(e);} });
             }
 
             const submitCommentBtn = document.getElementById('submitCommentBtn');
