@@ -129,6 +129,14 @@
         const markers = L.markerClusterGroup();
         map.addLayer(markers);
 
+        // Create custom graffiti marker icon
+        const graffitiIcon = L.icon({
+            iconUrl: '/images/graffiti-marker.png',
+            iconSize: [48, 48],
+            iconAnchor: [24, 48],
+            popupAnchor: [0, -48]
+        });
+
         async function loadPosts(){
             markers.clearLayers();
             try{
@@ -139,7 +147,7 @@
                     const lat = parseFloat(p.latitude !== undefined ? p.latitude : p.lat);
                     const lng = parseFloat(p.longitude !== undefined ? p.longitude : p.lng);
                     if (isNaN(lat) || isNaN(lng)) return;
-                    const m = L.marker([lat, lng]);
+                    const m = L.marker([lat, lng], { icon: graffitiIcon });
                     const when = p.created_at || p.created || '';
                     const popupImage = p.image ? ('<div style="text-align:center;margin-bottom:6px;"><img src="' + escapeHtml(p.image) + '" alt="Post image" style="max-width:120px;height:auto;border-radius:4px;"/></div>') : '';
                     m.bindPopup('<div>' + popupImage + '<strong>' + escapeHtml(p.title || '') + '</strong><br/><small>' + escapeHtml(when) + '</small></div>');
