@@ -59,47 +59,9 @@
 
 </div>
 
+<script src="/js/script.js"></script>
 <script>
-(function(){
-    // Image preview logic
-    const fileInput = document.getElementById('image');
-    const preview = document.getElementById('imagePreview');
-    const container = document.getElementById('imagePreviewContainer');
-    const current = document.getElementById('currentImageContainer');
-    if (fileInput) {
-        fileInput.addEventListener('change', function(ev){
-            const f = ev.target.files && ev.target.files[0];
-            if (!f) { if (container) container.style.display = 'none'; if (preview) preview.src = '#'; return; }
-            if (!f.type.startsWith('image/')) { if (container) container.style.display='none'; if (preview) preview.src='#'; return; }
-            const reader = new FileReader();
-            reader.onload = function(e){
-                if (preview) preview.src = e.target.result;
-                if (container) container.style.display = 'block';
-                if (current) current.style.display = 'none';
-            };
-            reader.readAsDataURL(f);
-        });
-    }
-
-    // Ensure lat/lng present on submit
-    const form = document.getElementById('editPostForm');
-    if (form) form.addEventListener('submit', function(ev){
-        const lat = document.getElementById('lat').value;
-        const lng = document.getElementById('lng').value;
-        if (!lat || !lng) {
-            ev.preventDefault();
-            alert('Please select a location on the map before submitting.');
-        }
-    });
-
-    // Delete confirmation — submits the hidden delete form
-    const deleteBtn = document.getElementById('deleteBtn');
-    if (deleteBtn) {
-        deleteBtn.addEventListener('click', function(){
-            if (confirm('Are you sure you want to delete this post? This action cannot be undone.')) {
-                document.getElementById('deleteForm').submit();
-            }
-        });
-    }
-})();
+document.addEventListener('DOMContentLoaded', function() {
+    if (typeof setupEditPostForm === 'function') setupEditPostForm();
+});
 </script>

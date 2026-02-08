@@ -6,7 +6,7 @@
 <div class="container-fluid">
     <div class="row">
         <div class="col mt-5">
-            <h3>Your posts</h3>
+            <h2 class="content-page-title">Your Posts</h2>
 
             <?php
             // If no user is logged in show the required message
@@ -31,10 +31,10 @@
                 <?php
                 else:
                 ?>
-                    <div class="list-group">
+                    <div>
                         <?php foreach ($posts as $p): ?>
-                            <div class="list-group-item d-flex justify-content-between align-items-start">
-                                <div class="d-flex align-items-start">
+                            <div class="content-card post-card">
+                                <div style="flex: 1; display: flex;">
                                     <?php
                                     // Prepare image URL with simple cache-busting by filename
                                     $img = $p->getImage();
@@ -46,25 +46,29 @@
                                     ?>
 
                                     <?php if ($imgUrl): ?>
-                                        <div class="me-3" style="flex:0 0 120px;">
-                                            <img src="<?= htmlspecialchars($imgUrl) ?>" alt="Post image" style="width:120px;height:auto;border-radius:6px;object-fit:cover;" />
+                                        <div class="content-card-image">
+                                            <img src="<?= htmlspecialchars($imgUrl) ?>" alt="Post image" />
                                         </div>
                                     <?php endif; ?>
 
-                                    <div>
-                                        <h6 class="mb-1"><?= htmlspecialchars($p->getTitle() ?? 'Post') ?></h6>
-                                        <p class="mb-1 small text-muted"><?= htmlspecialchars($p->getCreatedAt() ?? '') ?></p>
-                                        <p class="mb-0"><?= nl2br(htmlspecialchars($p->getDescription() ?? '')) ?></p>
+                                    <div class="content-card-content">
+                                        <div class="content-card-title"><strong>Title:</strong> <?= htmlspecialchars($p->getTitle() ?? 'Post') ?></div>
+                                        <div class="content-card-author"><strong>By:</strong> <?= htmlspecialchars($_SESSION['user']->getName() ?? $_SESSION['user']->getUsername() ?? 'Unknown') ?></div>
+                                        <div class="content-card-date"><strong>Posted:</strong> <?= htmlspecialchars($p->getCreatedAt() ?? '') ?></div>
+                                        <div class="content-card-body"><strong>Description:</strong> <?= nl2br(htmlspecialchars($p->getDescription() ?? '')) ?></div>
+                                        <div class="location-info">
+                                            <strong>Location:</strong> <?= htmlspecialchars($p->getLatitude() ?? '') ?>, <?= htmlspecialchars($p->getLongitude() ?? '') ?>
+                                        </div>
                                     </div>
                                 </div>
-                                <div class="ms-3 d-flex flex-column align-items-end gap-2">
+                                <div class="content-card-actions">
                                     <?php
                                     // Generate URL back to home with open_post_id parameter
                                     $homeUrl = isset($link) ? $link->url('home.index', ['open_post_id' => $p->getId()]) : ('?c=home&a=index&open_post_id=' . urlencode($p->getId()));
                                     $editUrl = isset($link) ? $link->url('post.edit', ['id' => $p->getId()]) : ('?c=post&a=edit&id=' . urlencode($p->getId()));
                                     ?>
-                                    <a href="<?= htmlspecialchars($homeUrl) ?>" class="btn btn-primary">Open on map</a>
-                                    <a href="<?= htmlspecialchars($editUrl) ?>" class="btn btn-outline-secondary">Edit</a>
+                                    <a href="<?= htmlspecialchars($homeUrl) ?>" class="btn btn-primary btn-sm">Open on map</a>
+                                    <a href="<?= htmlspecialchars($editUrl) ?>" class="btn btn-outline-secondary btn-sm">Edit</a>
                                 </div>
                             </div>
                         <?php endforeach; ?>

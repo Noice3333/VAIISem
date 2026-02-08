@@ -21,7 +21,7 @@
     <script src="<?= $link->asset('vendor/leaflet/leaflet.js') ?>"></script>
     <script src="<?= $link->asset('vendor/leaflet/leaflet.markercluster.js') ?>"></script>
     <link rel="stylesheet" href="<?= $link->asset('css/styl.css') ?>">
-    <script src="<?= $link->asset('js/script.js') ?>"></script>
+    <!-- script.js is now included by the views that need it (avoids duplicate loading) -->
 </head>
 <body>
 <div class="navbar navbarG navbar-expand-lg" >
@@ -34,6 +34,12 @@
             <ul class="navbar-nav me-auto">
                 <li class="nav-item">
                     <a class="nav-link navbarText" href="<?= $link->url('home.post') ?>">Posts</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link navbarText" href="<?= $link->url('user.comments') ?>">My Comments</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link navbarText" href="<?= $link->url('user.likes') ?>">My Likes</a>
                 </li>
             </ul>
             <span class="navbarText">Logged in user: <b><?= $auth?->user?->getName() ?></b></span>

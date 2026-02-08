@@ -65,3 +65,244 @@
 /* make sure long text in sidebar scrolls */
 #sidebarContent p { white-space: pre-wrap; }
 
+/* Floating create post button (blocky look) */
+.floating-create-btn {
+    position: fixed;
+    right: 18px;
+    bottom: 18px;
+    z-index: 12000;
+    padding: 10px 14px;
+    border: none;
+    border-radius: 0;
+    background: #28a745;
+    color: white;
+    font-size: 14px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    cursor: pointer;
+}
+.floating-create-btn.armed { background: #ffc107; color: #212529; }
+.floating-create-btn.danger { background: #dc3545; color: white; }
+
+/* Sidebar image styling */
+.sidebar-image img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 6px;
+}
+
+/* Image preview in forms */
+#imagePreview, #currentImage {
+    max-width: 100%;
+    height: auto;
+    border-radius: 6px;
+    display: block;
+}
+
+/* Minor adjustments for comments area */
+#commentsList .mb-2 { padding-bottom: 6px; border-bottom: 1px solid rgba(0,0,0,0.03); }
+
+/* Ensure sidebar transitions still apply */
+#sidebar { transition: all 220ms ease; }
+#mapCol { transition: all 220ms ease; }
+
+/* ============================================
+   CONTENT CARD STYLING (Posts, Comments, Likes)
+   ============================================ */
+
+/* List group item styling for content cards */
+.content-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 16px;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    margin-bottom: 12px;
+    background-color: #fff;
+    transition: box-shadow 0.2s ease;
+}
+
+.content-card:hover {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.content-card-image {
+    flex: 0 0 120px;
+    margin-right: 16px;
+}
+
+.content-card-image img {
+    width: 120px;
+    height: auto;
+    border-radius: 6px;
+    object-fit: cover;
+    display: block;
+}
+
+.content-card-content {
+    flex: 1;
+}
+
+.content-card-title {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 6px;
+    line-height: 1.4;
+}
+
+.content-card-title a {
+    color: #0056b3;
+    text-decoration: none;
+}
+
+.content-card-title a:hover {
+    text-decoration: underline;
+}
+
+.content-card-metadata {
+    font-size: 14px;
+    color: #6c757d;
+    margin-bottom: 8px;
+}
+
+.content-card-author {
+    font-size: 13px;
+    color: #495057;
+    font-weight: 500;
+    margin-bottom: 4px;
+}
+
+.content-card-body {
+    font-size: 15px;
+    color: #212529;
+    line-height: 1.5;
+    margin-bottom: 8px;
+}
+
+.content-card-footer {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 13px;
+    color: #6c757d;
+}
+
+.content-card-actions {
+    margin-left: 16px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 8px;
+    flex: 0 0 auto;
+}
+
+/* Like count styling with highlight */
+.like-count {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 8px;
+    background-color: #fff3cd;
+    border: 1px solid #ffc107;
+    border-radius: 3px;
+    font-size: 13px;
+    font-weight: 500;
+    color: #856404;
+}
+
+.like-count::before {
+    content: '❤';
+    font-size: 12px;
+}
+
+/* Date/time styling */
+.content-card-date {
+    font-size: 13px;
+    color: #6c757d;
+}
+
+/* Comment-specific styling */
+.comment-card .content-card-title {
+    font-size: 16px;
+    margin-bottom: 8px;
+}
+
+.comment-card .content-card-body {
+    font-size: 14px;
+    margin-bottom: 8px;
+}
+
+/* Post-specific styling */
+.post-card .content-card-title {
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.post-card .content-card-body {
+    font-size: 15px;
+    margin-bottom: 8px;
+    max-height: 60px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Location information */
+.location-info {
+    font-size: 13px;
+    color: #6c757d;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.location-info::before {
+    content: '📍';
+    font-size: 12px;
+}
+
+/* Section headings */
+.content-section-title {
+    font-size: 20px;
+    font-weight: 600;
+    color: #212529;
+    margin-top: 24px;
+    margin-bottom: 16px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid #0056b3;
+}
+
+.content-section-title:first-of-type {
+    margin-top: 0;
+}
+
+/* Main page heading */
+.content-page-title {
+    font-size: 28px;
+    font-weight: 700;
+    color: #212529;
+    margin-bottom: 24px;
+}
+
+/* Button styling adjustments */
+.content-card-actions .btn {
+    font-size: 13px;
+    padding: 6px 12px;
+    white-space: nowrap;
+}
+
+/* Empty state styling */
+.empty-state {
+    text-align: center;
+    padding: 40px 20px;
+}
+
+.empty-state-icon {
+    font-size: 48px;
+    margin-bottom: 16px;
+}
+
+.empty-state-message {
+    font-size: 16px;
+    color: #6c757d;
+}
+

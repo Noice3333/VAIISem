@@ -72,6 +72,24 @@ class Post extends Model
         $post = self::getOne($id);
         if ($post === null) return false;
 
+        // First, delete likes on the post itself
+        try {
+            \App\Models\Like::deleteByTarget('post', (int)$id);
+        } catch (\Throwable $e) { /* ignore */ }
+
+        // Next, delete comments for the post and collect comment IDs to delete likes
+        try {
+            // fetch comment ids
+            $rows = self::executeRawSQL('SELECT id FROM `comments` WHERE post_id = ?', [$id]);
+            $commentIds = array_map(fn($r) => (int)$r['id'], $rows);
+            // delete likes for each comment
+            foreach ($commentIds as $cid) {
+                try { \App\Models\Like::deleteByTarget('comment', $cid); } catch (\Throwable $e) { }
+            }
+            // delete comments
+            \App\Models\Comment::deleteByPost((int)$id);
+        } catch (\Throwable $e) { /* ignore */ }
+
         // Capture image path and delete the record first (so Model's delete works as usual)
         $image = $post->image;
         $post->delete();

@@ -44,34 +44,9 @@
     </form>
 </div>
 
+<script src="/js/script.js"></script>
 <script>
-(function(){
-    const fileInput = document.getElementById('image');
-    const preview = document.getElementById('imagePreview');
-    const container = document.getElementById('imagePreviewContainer');
-    if (!fileInput) return;
-    fileInput.addEventListener('change', function(ev){
-        const f = ev.target.files && ev.target.files[0];
-        if (!f) { container.style.display = 'none'; preview.src = '#'; return; }
-        // Only show a preview for images
-        if (!f.type.startsWith('image/')) { container.style.display='none'; preview.src='#'; return; }
-        const reader = new FileReader();
-        reader.onload = function(e){
-            preview.src = e.target.result;
-            container.style.display = 'block';
-        };
-        reader.readAsDataURL(f);
-    });
-
-    // Ensure lat/lng are present on submit
-    const form = document.getElementById('newPostForm');
-    form.addEventListener('submit', function(ev){
-        const lat = document.getElementById('lat').value;
-        const lng = document.getElementById('lng').value;
-        if (!lat || !lng) {
-            ev.preventDefault();
-            alert('Please select a location on the map before submitting.');
-        }
-    });
-})();
+document.addEventListener('DOMContentLoaded', function() {
+    if (typeof setupNewPostForm === 'function') setupNewPostForm();
+});
 </script>

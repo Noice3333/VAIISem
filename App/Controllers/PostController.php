@@ -256,5 +256,181 @@ class PostController extends BaseController
 
         return $this->redirect($this->url('home.index'));
     }
-}
 
+    // API: return comments for a post and post-like summary
+    public function comments(Request $request): Response
+    {
+        $isJson = ($request->get('json') === '1') || $request->wantsJson() || $request->isJson();
+        if (!$isJson) {
+            return $this->json(['error' => 'JSON required'])->setStatusCode(400);
+        }
+
+        $postId = $request->get('post_id');
+        if ($postId === null) {
+            return $this->json(['error' => 'Missing post_id'])->setStatusCode(400);
+        }
+
+        $post = \App\Models\Post::getOne((int)$postId);
+        if ($post === null) {
+            return $this->json(['error' => 'Post not found'])->setStatusCode(404);
+        }
+
+        $comments = \App\Models\Comment::getForPost((int)$postId);
+        $result = [];
+        $currentUserId = isset($_SESSION['user']) && method_exists($_SESSION['user'], 'getId') ? $_SESSION['user']->getId() : null;
+        foreach ($comments as $c) {
+            $user = null;
+            if ($c->getUserId() !== null) {
+                try { $user = \App\Models\User::getOne($c->getUserId()); } catch (\Throwable $t) { $user = null; }
+            }
+            $username = $user ? ($user->getUsername() ?? ($user->login ?? null)) : null;
+
+            $likeCount = \App\Models\Like::countForTarget('comment', $c->getId());
+            $liked = $currentUserId ? \App\Models\Like::userHasLiked($currentUserId, 'comment', $c->getId()) : false;
+
+            $result[] = [
+                'id' => $c->getId(),
+                'post_id' => $c->getPostId(),
+                'user_id' => $c->getUserId(),
+                'username' => $username,
+                'content' => $c->getContent(),
+                'created_at' => $c->getCreatedAt(),
+                'like_count' => $likeCount,
+                'liked' => $liked
+            ];
+        }
+
+        $postLikeCount = \App\Models\Like::countForTarget('post', $post->getId());
+        $postLiked = $currentUserId ? \App\Models\Like::userHasLiked($currentUserId, 'post', $post->getId()) : false;
+
+        return $this->json(['post' => [
+            'id' => $post->getId(),
+            'like_count' => $postLikeCount,
+            'liked' => $postLiked
+        ], 'comments' => $result]);
+    }
+
+    // API: create a comment (JSON POST)
+    public function commentCreate(Request $request): Response
+    {
+        $isJson = ($request->get('json') === '1') || $request->wantsJson() || $request->isJson();
+        if (!$isJson) {
+            return $this->json(['error' => 'JSON required'])->setStatusCode(400);
+        }
+
+        $auth = $this->app->getAuth();
+        if (!$auth || !$auth->isLogged()) {
+            return $this->json(['error' => 'Authentication required'])->setStatusCode(401);
+        }
+
+        $input = $request->isJson() ? $request->json() : null;
+        if (!$input) {
+            // try standard POST
+            $postId = $request->post('post_id');
+            $content = trim((string)($request->post('content') ?? ''));
+        } else {
+            $input = is_object($input) ? json_decode(json_encode($input), true) : $input;
+            $postId = $input['post_id'] ?? null;
+            $content = trim((string)($input['content'] ?? ''));
+        }
+
+        if ($postId === null || $content === '') {
+            return $this->json(['error' => 'Missing fields'])->setStatusCode(400);
+        }
+
+        $post = \App\Models\Post::getOne((int)$postId);
+        if ($post === null) {
+            return $this->json(['error' => 'Post not found'])->setStatusCode(404);
+        }
+
+        $userId = $_SESSION['user']->getId();
+        try {
+            $c = \App\Models\Comment::create([
+                'post_id' => (int)$postId,
+                'user_id' => $userId,
+                'content' => $content
+            ]);
+            return $this->json(['ok' => true, 'comment' => [
+                'id' => $c->getId(),
+                'post_id' => $c->getPostId(),
+                'user_id' => $c->getUserId(),
+                'content' => $c->getContent(),
+                'created_at' => $c->getCreatedAt(),
+                'like_count' => 0,
+                'liked' => false
+            ]]);
+        } catch (\Exception $e) {
+            return $this->json(['error' => 'Insert failed'])->setStatusCode(500);
+        }
+    }
+
+    // API: delete a comment
+    public function commentDelete(Request $request): Response
+    {
+        $auth = $this->app->getAuth();
+        if (!$auth || !$auth->isLogged()) {
+            return $this->json(['error' => 'Authentication required'])->setStatusCode(401);
+        }
+
+        $id = $request->post('id') ?? $request->get('id');
+        if ($id === null) {
+            return $this->json(['error' => 'Missing id'])->setStatusCode(400);
+        }
+
+        $c = \App\Models\Comment::getOne((int)$id);
+        if ($c === null) {
+            return $this->json(['error' => 'Comment not found'])->setStatusCode(404);
+        }
+
+        $userId = $_SESSION['user']->getId();
+        if ($c->getUserId() !== $userId) {
+            return $this->json(['error' => 'Forbidden'])->setStatusCode(403);
+        }
+
+        try {
+            // delete likes on the comment as well
+            \App\Models\Like::deleteByTarget('comment', (int)$id);
+            \App\Models\Comment::deleteById((int)$id);
+            return $this->json(['ok' => true]);
+        } catch (\Exception $e) {
+            return $this->json(['error' => 'Delete failed'])->setStatusCode(500);
+        }
+    }
+
+    // API: toggle like on a post or comment
+    public function toggleLike(Request $request): Response
+    {
+        $auth = $this->app->getAuth();
+        if (!$auth || !$auth->isLogged()) {
+            return $this->json(['error' => 'Authentication required'])->setStatusCode(401);
+        }
+
+        $input = $request->isJson() ? $request->json() : null;
+        if (!$input) {
+            $targetType = $request->post('target_type') ?? $request->get('target_type');
+            $targetId = $request->post('target_id') ?? $request->get('target_id');
+        } else {
+            $input = is_object($input) ? json_decode(json_encode($input), true) : $input;
+            $targetType = $input['target_type'] ?? null;
+            $targetId = $input['target_id'] ?? null;
+        }
+
+        if (!$targetType || !$targetId) {
+            return $this->json(['error' => 'Missing fields'])->setStatusCode(400);
+        }
+
+        $targetType = strtolower((string)$targetType);
+        if (!in_array($targetType, ['post', 'comment'])) {
+            return $this->json(['error' => 'Invalid target_type'])->setStatusCode(400);
+        }
+
+        $userId = $_SESSION['user']->getId();
+        try {
+            $liked = \App\Models\Like::toggleLike((int)$userId, $targetType, (int)$targetId);
+            $count = \App\Models\Like::countForTarget($targetType, (int)$targetId);
+            return $this->json(['ok' => true, 'liked' => $liked, 'count' => $count]);
+        } catch (\Exception $e) {
+            return $this->json(['error' => 'Operation failed'])->setStatusCode(500);
+        }
+    }
+}
