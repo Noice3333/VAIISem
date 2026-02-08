@@ -267,6 +267,27 @@ abstract class Model implements \JsonSerializable
     }
 
     /**
+     * Deletes all records matching the given where condition.
+     * Used for cascade deletion of related records.
+     *
+     * @param string $whereClause The WHERE clause (e.g., 'user_id = ? AND status = ?')
+     * @param array $bindParams Parameters to bind to the query
+     * @return int Number of rows deleted
+     * @throws Exception If there is an error executing the SQL query
+     */
+    public static function deleteWhere(string $whereClause, array $bindParams = []): int
+    {
+        try {
+            $sql = "DELETE FROM `" . static::getTableName() . "` WHERE " . $whereClause;
+            $stmt = Connection::getInstance()->prepare($sql);
+            $stmt->execute($bindParams);
+            return $stmt->rowCount();
+        } catch (PDOException $exception) {
+            throw new Exception('Query failed: ' . $exception->getMessage(), 0, $exception);
+        }
+    }
+
+    /**
      * Executes a raw SQL query and returns the result.
      *
      * This method is designed to run custom SQL queries that may not fit the standard CRUD operations provided

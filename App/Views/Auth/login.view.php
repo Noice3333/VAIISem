@@ -40,6 +40,6 @@ $view->setLayout('auth');
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    if (typeof setupLoginForm === 'function') setupLoginForm();
+    if (typeof initPage === 'function') initPage();
 });
 </script>

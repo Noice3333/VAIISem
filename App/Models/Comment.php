@@ -37,6 +37,12 @@ class Comment extends Model
     {
         $c = self::getOne($id);
         if ($c === null) return false;
+
+        // Delete all likes on this comment first
+        try {
+            Like::deleteByTarget('comment', $id);
+        } catch (\Throwable $e) { /* ignore */ }
+
         $c->delete();
         return true;
     }

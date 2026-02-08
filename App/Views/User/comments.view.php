@@ -48,37 +48,7 @@
 </div>
 
 <script>
-    document.addEventListener('DOMContentLoaded', function(){
-        document.querySelectorAll('.delete-comment-btn').forEach(btn => {
-            btn.addEventListener('click', async function(ev){
-                ev.preventDefault();
-                if (!confirm('Are you sure you want to delete this comment?')) return;
-
-                const commentId = this.dataset.id;
-                const btn = this;
-
-                try {
-                    const response = await fetch('<?= $link->url("post.commentDelete") ?>', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/x-www-form-urlencoded'
-                        },
-                        body: 'id=' + encodeURIComponent(commentId)
-                    });
-
-                    const json = await response.json().catch(() => null);
-
-                    if (json && json.ok) {
-                        btn.closest('.content-card').remove();
-                    } else {
-                        const errorMsg = json?.error || 'Failed to delete comment';
-                        alert(errorMsg);
-                    }
-                } catch (e) {
-                    console.error('Error deleting comment:', e);
-                    alert('Error deleting comment: ' + e.message);
-                }
-            });
-        });
-    });
+document.addEventListener('DOMContentLoaded', function(){
+    if (typeof initPage === 'function') initPage();
+});
 </script>

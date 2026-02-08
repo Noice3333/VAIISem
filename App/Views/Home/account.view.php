@@ -84,6 +84,6 @@ $message = $data['message'] ?? null;
 <script src="/js/script.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    if (typeof setupAccountForm === 'function') setupAccountForm();
+    if (typeof initPage === 'function') initPage();
 });
 </script>

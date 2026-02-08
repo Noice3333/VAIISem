@@ -55,71 +55,7 @@
 <script src="/js/script.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    if (typeof setupNewPostForm === 'function') setupNewPostForm();
-
-    // Form validation - only on submit
-    const form = document.getElementById('newPostForm');
-    const titleInput = document.getElementById('name');
-    const descInput = document.getElementById('description');
-    const imageInput = document.getElementById('image');
-    const latInput = document.getElementById('lat');
-    const lngInput = document.getElementById('lng');
-    const locationAlert = document.getElementById('locationAlert');
-
-    // Image preview - no validation blocking
-    imageInput.addEventListener('change', function(ev){
-        const f = ev.target.files && ev.target.files[0];
-        if (!f){
-            document.getElementById('imagePreviewContainer').style.display='none';
-            return;
-        }
-        if (!f.type.startsWith('image/')){
-            document.getElementById('imagePreviewContainer').style.display='none';
-            return;
-        }
-        const reader = new FileReader();
-        reader.onload=function(e){
-            document.getElementById('imagePreview').src = e.target.result;
-            document.getElementById('imagePreviewContainer').style.display='block';
-        };
-        reader.readAsDataURL(f);
-    });
-
-    form.addEventListener('submit', function(ev) {
-        const lat = latInput.value;
-        const lng = lngInput.value;
-        const title = titleInput.value.trim();
-        const desc = descInput.value.trim();
-
-        // Validate all fields
-        let hasErrors = false;
-
-        if (!title || title.length > 255) {
-            titleInput.classList.add('is-invalid');
-            hasErrors = true;
-        } else {
-            titleInput.classList.remove('is-invalid');
-        }
-
-        if (!desc || desc.length > 5000) {
-            descInput.classList.add('is-invalid');
-            hasErrors = true;
-        } else {
-            descInput.classList.remove('is-invalid');
-        }
-
-        if (!lat || !lng) {
-            locationAlert.style.display = 'block';
-            hasErrors = true;
-        } else {
-            locationAlert.style.display = 'none';
-        }
-
-        if (hasErrors) {
-            ev.preventDefault();
-            ev.stopPropagation();
-        }
-    });
+    if (typeof initPage === 'function') initPage();
 });
 </script>
 

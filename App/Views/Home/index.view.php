@@ -19,12 +19,11 @@
             <!-- Map styles moved to public/css/styl.css but we add a minimum here for safety -->
             <div id="map" aria-label="Map showing posts" style="width:100%;height:70vh;min-height:420px;"></div>
 
-            <!-- External scripts and initializer -->
             <script src="/js/script.js"></script>
             <script>
                 document.addEventListener('DOMContentLoaded', function(){
-                    if (typeof initHomeMap !== 'function' || typeof buildHomeMapConfig !== 'function') return;
-                    const cfg = buildHomeMapConfig({
+                    if (typeof initPage !== 'function') return;
+                    const cfg = {
                         apiUrl: '<?= $link->url("home.post", ["json"=>1]) ?>',
                         commentsApi: '<?= $link->url("post.comments", ["json"=>1]) ?>',
                         commentCreateApi: '<?= $link->url("post.commentCreate", ["json"=>1]) ?>',
@@ -34,8 +33,8 @@
                         loginUrl: '<?= \App\Configuration::LOGIN_URL ?>',
                         isLogged: <?= (isset($auth) && $auth?->isLogged()) ? 'true' : 'false' ?>,
                         currentUserId: <?= (isset($_SESSION['user']) && method_exists($_SESSION['user'], 'getId')) ? json_encode($_SESSION['user']->getId()) : 'null' ?>
-                    });
-                    initHomeMap(cfg);
+                    };
+                    initPage(cfg);
                 });
             </script>
 

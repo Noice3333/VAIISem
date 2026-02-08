@@ -158,6 +158,7 @@ class User extends Model implements IIdentity
 
     /**
      * Delete user account. Returns null on success, or error message on failure.
+     * This cascades deletion of all related posts, comments, and likes.
      */
     public static function deleteAccount(int $userId): ?string
     {
@@ -166,10 +167,25 @@ class User extends Model implements IIdentity
             return "User not found (this should not happen)";
         }
         try {
+            // Get all posts by this user to delete them properly (with cascade)
+            $userPosts = Post::getAll('user_id = ?', [$userId]);
+            if (is_array($userPosts) && !empty($userPosts)) {
+                foreach ($userPosts as $post) {
+                    Post::deleteById($post->getId());
+                }
+            }
+
+            // Delete all comments created by this user (on other users' posts)
+            Comment::deleteWhere('user_id = ?', [$userId]);
+
+            // Delete all likes created by this user
+            Like::deleteWhere('user_id = ?', [$userId]);
+
+            // Finally, delete the user account
             $user->delete();
             $_SESSION['user'] = null;
         } catch (\Exception $e) {
-            return "Deletion failed (server error)";
+            return "Deletion failed (server error): " . $e->getMessage();
         }
         return null;
     }

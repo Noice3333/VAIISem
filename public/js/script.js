@@ -380,7 +380,7 @@
                     messageDiv.className = 'text-center text-success mb-3';
                     messageDiv.textContent = 'Login successful! Redirecting...';
                     setTimeout(() => {
-                        window.location.href = '/user/index';
+                        window.location.href = '/?c=user&a=index';
                     }, 500);
                 } else {
                     messageDiv.className = 'text-center text-danger mb-3';
@@ -469,12 +469,12 @@
 
                 const json = await response.json();
 
-                if (json.ok) {
-                    messageDiv.className = 'text-center text-success mb-3';
-                    messageDiv.textContent = 'Registration successful! Redirecting...';
-                    setTimeout(() => {
-                        window.location.href = '/user/index';
-                    }, 500);
+            if (json.ok) {
+                messageDiv.className = 'text-center text-success mb-3';
+                messageDiv.textContent = 'Registration successful! Redirecting...';
+                setTimeout(() => {
+                    window.location.href = '/?c=user&a=index';
+                }, 500);
                 } else {
                     messageDiv.className = 'text-center text-danger mb-3';
                     messageDiv.textContent = json.error || 'Registration failed';
@@ -499,7 +499,79 @@
         const editMessage = document.getElementById('editMessage');
         const deleteBtn = document.getElementById('deleteAccountBtn');
 
-        // ...existing edit form submission code...
+        // Edit form submission
+        editForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const name = document.getElementById('name').value.trim();
+            const login = document.getElementById('login').value.trim();
+            const password = document.getElementById('password').value.trim();
+
+            let hasErrors = false;
+            if (name && (name.length < 1 || name.length > 255)) {
+                hasErrors = true;
+            }
+            if (login && (login.length < 3 || login.length > 50)) {
+                hasErrors = true;
+            }
+            if (password && password.length < 8) {
+                hasErrors = true;
+            }
+
+            if (hasErrors) {
+                editMessage.className = 'alert alert-danger';
+                editMessage.textContent = 'Please fix the errors in the form';
+                editMessage.style.display = 'block';
+                return;
+            }
+
+            editMessage.style.display = 'none';
+
+            try {
+                const submitBtn = editForm.querySelector('button[type="submit"]');
+                const originalText = submitBtn.textContent;
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'Saving...';
+
+                const formData = new FormData();
+                formData.append('name', name);
+                formData.append('login', login);
+                formData.append('password', password);
+                formData.append('submit', '1');
+
+                const response = await fetch('/?a=account', {
+                    method: 'POST',
+                    headers: {'X-Requested-With': 'XMLHttpRequest'},
+                    credentials: 'same-origin',
+                    body: formData
+                });
+
+                const json = await response.json();
+
+                if (json.ok) {
+                    editMessage.className = 'alert alert-success';
+                    editMessage.textContent = json.message || 'Account updated successfully';
+                    editMessage.style.display = 'block';
+                    document.getElementById('password').value = '';
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = originalText;
+                } else {
+                    editMessage.className = 'alert alert-danger';
+                    editMessage.textContent = json.error || 'Failed to update account';
+                    editMessage.style.display = 'block';
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = originalText;
+                }
+            } catch (e) {
+                console.error('Error updating account:', e);
+                editMessage.className = 'alert alert-danger';
+                editMessage.textContent = 'An error occurred. Please try again.';
+                editMessage.style.display = 'block';
+                const submitBtn = editForm.querySelector('button[type="submit"]');
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Save Changes';
+            }
+        });
 
         // Delete account button
         if (deleteBtn) {
@@ -529,7 +601,7 @@
                         editMessage.textContent = 'Account deleted successfully. Redirecting...';
                         editMessage.style.display = 'block';
                         setTimeout(() => {
-                            window.location.href = '/';
+                            window.location.href = '/?c=home&a=index';
                         }, 1500);
                     } else {
                         editMessage.className = 'alert alert-danger';
@@ -557,4 +629,150 @@
     global.setupLoginForm = setupLoginForm;
     global.setupRegisterForm = setupRegisterForm;
     global.setupAccountForm = setupAccountForm;
+
+    // Master initialization function - auto-detects page type and initializes appropriately
+    function initPage(config) {
+        // Login form
+        if (document.getElementById('loginForm')) {
+            setupLoginForm();
+        }
+
+        // Register form
+        if (document.getElementById('gForm')) {
+            setupRegisterForm();
+        }
+
+        // Account form
+        if (document.getElementById('editAccountForm')) {
+            setupAccountForm();
+        }
+
+        // New post form
+        if (document.getElementById('newPostForm')) {
+            setupNewPostForm();
+            setupPostFormValidation();
+        }
+
+        // Edit post form
+        if (document.getElementById('editPostForm')) {
+            setupEditPostForm();
+            setupPostFormValidation();
+        }
+
+        // Home map
+        if (document.getElementById('map') && config) {
+            initHomeMap(config);
+        }
+
+        // Delete comment buttons
+        const deleteCommentBtns = document.querySelectorAll('.delete-comment-btn');
+        if (deleteCommentBtns.length > 0) {
+            setupCommentDelete();
+        }
+    }
+
+    function setupCommentDelete() {
+        document.querySelectorAll('.delete-comment-btn').forEach(btn => {
+            btn.addEventListener('click', async function(ev){
+                ev.preventDefault();
+                if (!confirm('Are you sure you want to delete this comment?')) return;
+
+                const commentId = this.dataset.id;
+                const btn = this;
+
+                try {
+                    const response = await fetch('/?a=commentDelete&c=post', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded'
+                        },
+                        body: 'id=' + encodeURIComponent(commentId)
+                    });
+
+                    const json = await response.json().catch(() => null);
+
+                    if (json && json.ok) {
+                        btn.closest('.content-card').remove();
+                    } else {
+                        const errorMsg = json?.error || 'Failed to delete comment';
+                        alert(errorMsg);
+                    }
+                } catch (e) {
+                    console.error('Error deleting comment:', e);
+                    alert('Error deleting comment: ' + e.message);
+                }
+            });
+        });
+    }
+
+    function setupPostFormValidation() {
+        const form = document.getElementById('newPostForm') || document.getElementById('editPostForm');
+        if (!form) return;
+
+        const titleInput = document.getElementById('name');
+        const descInput = document.getElementById('description');
+        const imageInput = document.getElementById('image');
+        const latInput = document.getElementById('lat');
+        const lngInput = document.getElementById('lng');
+        const locationAlert = document.getElementById('locationAlert');
+
+        // Image preview
+        if (imageInput) {
+            imageInput.addEventListener('change', function(ev){
+                const f = ev.target.files && ev.target.files[0];
+                if (!f){
+                    document.getElementById('imagePreviewContainer').style.display='none';
+                    return;
+                }
+                if (!f.type.startsWith('image/')){
+                    document.getElementById('imagePreviewContainer').style.display='none';
+                    return;
+                }
+                const reader = new FileReader();
+                reader.onload=function(e){
+                    document.getElementById('imagePreview').src = e.target.result;
+                    document.getElementById('imagePreviewContainer').style.display='block';
+                };
+                reader.readAsDataURL(f);
+            });
+        }
+
+        // Form validation on submit
+        form.addEventListener('submit', function(ev) {
+            const lat = latInput.value;
+            const lng = lngInput.value;
+            const title = titleInput.value.trim();
+            const desc = descInput.value.trim();
+
+            let hasErrors = false;
+
+            if (!title || title.length > 255) {
+                titleInput.classList.add('is-invalid');
+                hasErrors = true;
+            } else {
+                titleInput.classList.remove('is-invalid');
+            }
+
+            if (!desc || desc.length > 5000) {
+                descInput.classList.add('is-invalid');
+                hasErrors = true;
+            } else {
+                descInput.classList.remove('is-invalid');
+            }
+
+            if (!lat || !lng) {
+                if (locationAlert) locationAlert.style.display = 'block';
+                hasErrors = true;
+            } else {
+                if (locationAlert) locationAlert.style.display = 'none';
+            }
+
+            if (hasErrors) {
+                ev.preventDefault();
+                ev.stopPropagation();
+            }
+        });
+    }
+
+    global.initPage = initPage;
 })(window);
