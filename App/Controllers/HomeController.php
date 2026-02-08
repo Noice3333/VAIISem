@@ -166,12 +166,32 @@ class HomeController extends BaseController
                 $request->value('login'),
                 $request->value('password')
             );
+
+            // Check if AJAX request
+            if ($request->isAjax()) {
+                if ($message === null) {
+                    return $this->json(['ok' => true, 'message' => 'Account updated successfully']);
+                } else {
+                    return $this->json(['ok' => false, 'error' => $message]);
+                }
+            }
+
             if ($message === null) {
                 $message = "Changes made.";
             }
         } else if ($request->hasValue('delete')) {
             $userId = $_SESSION['user']->getId();
             $message = User::deleteAccount($userId);
+
+            // Check if AJAX request
+            if ($request->isAjax()) {
+                if ($message === null) {
+                    return $this->json(['ok' => true, 'redirect' => $this->url("home.index")]);
+                } else {
+                    return $this->json(['ok' => false, 'error' => $message]);
+                }
+            }
+
             if ($message === null) {
                 return $this->redirect($this->url("home.index"));
             }

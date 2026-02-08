@@ -316,8 +316,237 @@
         };
     }
 
+    function setupLoginForm() {
+        const form = document.getElementById('loginForm');
+        if (!form) return;
+
+        const loginInput = document.getElementById('login');
+        const passwordInput = document.getElementById('password');
+        const messageDiv = document.getElementById('loginMessage');
+
+        form.addEventListener('submit', async function(ev) {
+            ev.preventDefault();
+
+            const login = loginInput.value.trim();
+            const password = passwordInput.value;
+
+            let hasErrors = false;
+            if (!login || login.length < 3 || login.length > 50) {
+                loginInput.classList.add('is-invalid');
+                hasErrors = true;
+            } else {
+                loginInput.classList.remove('is-invalid');
+            }
+
+            if (!password || password.length < 8) {
+                passwordInput.classList.add('is-invalid');
+                hasErrors = true;
+            } else {
+                passwordInput.classList.remove('is-invalid');
+            }
+
+            if (hasErrors) return;
+
+            messageDiv.textContent = '';
+            messageDiv.className = 'text-center text-danger mb-3';
+
+            try {
+                const submitBtn = form.querySelector('button[type="submit"]');
+                const originalText = submitBtn.textContent;
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'Logging in...';
+
+                const formData = new FormData(form);
+                formData.append('submit', '1');
+
+                const response = await fetch('/?c=auth&a=login', {
+                    method: 'POST',
+                    headers: {'X-Requested-With': 'XMLHttpRequest'},
+                    credentials: 'same-origin',
+                    body: formData
+                });
+
+                const json = await response.json();
+
+                if (json.ok) {
+                    messageDiv.className = 'text-center text-success mb-3';
+                    messageDiv.textContent = 'Login successful! Redirecting...';
+                    setTimeout(() => {
+                        window.location.href = '/user/index';
+                    }, 500);
+                } else {
+                    messageDiv.className = 'text-center text-danger mb-3';
+                    messageDiv.textContent = json.error || 'Login failed';
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = originalText;
+                }
+            } catch (e) {
+                console.error('Login error:', e);
+                messageDiv.className = 'text-center text-danger mb-3';
+                messageDiv.textContent = 'An error occurred. Please try again.';
+                const submitBtn = form.querySelector('button[type="submit"]');
+                submitBtn.disabled = false;
+                submitBtn.textContent = originalText;
+            }
+        });
+    }
+
+    function setupRegisterForm() {
+        const $form = document.getElementById('gForm');
+        if (!$form) return;
+
+        const $name = document.getElementById('name');
+        const $username = document.getElementById('login');
+        const $passwordField = document.getElementById('password');
+        const $repeatPassword = document.getElementById('repeat_password');
+        const messageDiv = document.getElementById('registerMessage');
+
+        $form.addEventListener('submit', async (gEvent) => {
+            gEvent.preventDefault();
+
+            let invalid = 0;
+
+            const nameValid = $name.value.trim().length >= 1 && $name.value.length <= 255;
+            if (!nameValid) {
+                $name.classList.add('is-invalid');
+                invalid++;
+            } else {
+                $name.classList.remove('is-invalid');
+            }
+
+            const usernameValid = $username.value.trim().length >= 3 && $username.value.length <= 50;
+            if (!usernameValid) {
+                $username.classList.add('is-invalid');
+                invalid++;
+            } else {
+                $username.classList.remove('is-invalid');
+            }
+
+            const passwordValid = $passwordField.value.length >= 8;
+            if (!passwordValid) {
+                $passwordField.classList.add('is-invalid');
+                invalid++;
+            } else {
+                $passwordField.classList.remove('is-invalid');
+            }
+
+            const passwordsMatch = $passwordField.value === $repeatPassword.value && $passwordField.value.length >= 8;
+            if (!passwordsMatch) {
+                $repeatPassword.classList.add('is-invalid');
+                invalid++;
+            } else {
+                $repeatPassword.classList.remove('is-invalid');
+            }
+
+            if (invalid > 0) return;
+
+            messageDiv.textContent = '';
+            messageDiv.className = 'text-center text-danger mb-3';
+
+            try {
+                const submitBtn = $form.querySelector('button[type="submit"]');
+                const originalText = submitBtn.textContent;
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'Registering...';
+
+                const formData = new FormData($form);
+                formData.append('submit', '1');
+
+                const response = await fetch('/?c=auth&a=register', {
+                    method: 'POST',
+                    headers: {'X-Requested-With': 'XMLHttpRequest'},
+                    credentials: 'same-origin',
+                    body: formData
+                });
+
+                const json = await response.json();
+
+                if (json.ok) {
+                    messageDiv.className = 'text-center text-success mb-3';
+                    messageDiv.textContent = 'Registration successful! Redirecting...';
+                    setTimeout(() => {
+                        window.location.href = '/user/index';
+                    }, 500);
+                } else {
+                    messageDiv.className = 'text-center text-danger mb-3';
+                    messageDiv.textContent = json.error || 'Registration failed';
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = originalText;
+                }
+            } catch (e) {
+                console.error('Registration error:', e);
+                messageDiv.className = 'text-center text-danger mb-3';
+                messageDiv.textContent = 'An error occurred. Please try again.';
+                const submitBtn = $form.querySelector('button[type="submit"]');
+                submitBtn.disabled = false;
+                submitBtn.textContent = originalText;
+            }
+        });
+    }
+
+    function setupAccountForm() {
+        const editForm = document.getElementById('editAccountForm');
+        if (!editForm) return;
+
+        const editMessage = document.getElementById('editMessage');
+        const deleteBtn = document.getElementById('deleteAccountBtn');
+
+        // ...existing edit form submission code...
+
+        // Delete account button
+        if (deleteBtn) {
+            deleteBtn.addEventListener('click', async () => {
+                if (!confirm('Are you absolutely sure you want to delete your account? This cannot be undone. All your posts, comments, and likes will be deleted.')) {
+                    return;
+                }
+
+                try {
+                    deleteBtn.disabled = true;
+                    deleteBtn.textContent = 'Deleting...';
+
+                    const response = await fetch('/?a=account', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        },
+                        credentials: 'same-origin',
+                        body: 'delete=1'
+                    });
+
+                    const json = await response.json();
+
+                    if (json.ok) {
+                        editMessage.className = 'alert alert-success';
+                        editMessage.textContent = 'Account deleted successfully. Redirecting...';
+                        editMessage.style.display = 'block';
+                        setTimeout(() => {
+                            window.location.href = '/';
+                        }, 1500);
+                    } else {
+                        editMessage.className = 'alert alert-danger';
+                        editMessage.textContent = json.error || 'Failed to delete account';
+                        editMessage.style.display = 'block';
+                        deleteBtn.disabled = false;
+                        deleteBtn.textContent = 'Delete Account';
+                    }
+                } catch (e) {
+                    console.error('Error deleting account:', e);
+                    editMessage.className = 'alert alert-danger';
+                    editMessage.textContent = 'An error occurred. Please try again.';
+                    editMessage.style.display = 'block';
+                    deleteBtn.disabled = false;
+                    deleteBtn.textContent = 'Delete Account';
+                }
+            });
+        }
+    }
+
     global.initHomeMap = initHomeMap;
     global.setupNewPostForm = setupNewPostForm;
     global.setupEditPostForm = setupEditPostForm;
     global.buildHomeMapConfig = buildHomeMapConfig;
+    global.setupLoginForm = setupLoginForm;
+    global.setupRegisterForm = setupRegisterForm;
+    global.setupAccountForm = setupAccountForm;
 })(window);

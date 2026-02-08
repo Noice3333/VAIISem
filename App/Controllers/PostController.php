@@ -264,7 +264,7 @@ class PostController extends BaseController
             // ignore
         }
 
-        return $this->redirect($this->url('home.index'));
+        return $this->redirect($this->url('home.post'));
     }
 
     // API: return comments for a post and post-like summary

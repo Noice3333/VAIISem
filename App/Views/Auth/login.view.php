@@ -8,10 +8,8 @@ $view->setLayout('auth');
 
 <div class="container loginBox">
     <div class="row justify-content-center">
-        <div class="text-center text-danger mb-3">
-            <?= htmlspecialchars($dataVars['message'] ?? '') ?>
-        </div>
-        <form class="form-signin" method="post" id="loginForm" novalidate>
+        <div id="loginMessage" class="text-center text-danger mb-3"></div>
+        <form class="form-signin" id="loginForm" novalidate data-action="<?= $link->url("auth.login") ?>">
             <div class="form-label-group mb-3">
                 <label for="login" class="form-label">Username (the one you filled into the second field when registering)</label>
                 <input name="login" type="text" id="login" class="form-control" placeholder="Username"
@@ -42,35 +40,6 @@ $view->setLayout('auth');
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const form = document.getElementById('loginForm');
-    const loginInput = document.getElementById('login');
-    const passwordInput = document.getElementById('password');
-
-    // Only validate on form submission
-    form.addEventListener('submit', function(ev) {
-        const login = loginInput.value.trim();
-        const password = passwordInput.value;
-
-        let hasErrors = false;
-
-        if (!login || login.length < 3 || login.length > 50) {
-            loginInput.classList.add('is-invalid');
-            hasErrors = true;
-        } else {
-            loginInput.classList.remove('is-invalid');
-        }
-
-        if (!password || password.length < 8) {
-            passwordInput.classList.add('is-invalid');
-            hasErrors = true;
-        } else {
-            passwordInput.classList.remove('is-invalid');
-        }
-
-        if (hasErrors) {
-            ev.preventDefault();
-            ev.stopPropagation();
-        }
-    });
+    if (typeof setupLoginForm === 'function') setupLoginForm();
 });
 </script>

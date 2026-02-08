@@ -49,11 +49,21 @@ class AuthController extends BaseController
         if ($request->hasValue('submit')) {
             $logged = $this->app->getAuth()->login($request->value('login'), $request->value('password'));
             if ($logged) {
+                // Check if AJAX request
+                if ($request->isAjax()) {
+                    return $this->json(['ok' => true, 'redirect' => $this->url("user.index")]);
+                }
                 return $this->redirect($this->url("user.index"));
             }
         }
 
         $message = $logged === false ? 'Incorrect login or password' : null;
+
+        // Check if AJAX request
+        if ($request->isAjax()) {
+            return $this->json(['ok' => false, 'error' => $message]);
+        }
+
         return $this->html(['message' => $message], 'login');
     }
 
@@ -82,9 +92,19 @@ class AuthController extends BaseController
                 $request->value('repeat_password')
             );
             if ($message === null) {
+                // Check if AJAX request
+                if ($request->isAjax()) {
+                    return $this->json(['ok' => true, 'redirect' => $this->url("user.index")]);
+                }
                 return $this->redirect($this->url("user.index"));
             }
         }
+
+        // Check if AJAX request
+        if ($request->isAjax()) {
+            return $this->json(['ok' => false, 'error' => $message]);
+        }
+
         return $this->html(['message' => $message]);
     }
 }
